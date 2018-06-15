@@ -1,7 +1,10 @@
 Package: kwb.monitoring
-Maintainer: Hauke Sonnenberg <hauke.sonnenberg@kompetenz-wasser.de>
-Author: Hauke Sonnenberg
 Version: 0.2.0
+Title: Functions Used Within Different Kwb Monitoring Projects
+Description: Functions used within different KWB projects dealing with 
+    monitoring data.
+Authors@R: c(person("Hauke", "Sonnenberg", , "hauke.sonnenberg@kompetenz-wasser.de", role = c("aut", "cre")),
+             person("Kompetenzzentrum Wasser Berlin gGmbH", role = c("cph")))
 Imports: gplots, kwb.base, kwb.datetime, kwb.event, kwb.plot, kwb.utils, 
     lattice, lubridate, manipulate
 Remotes: 
@@ -11,7 +14,6 @@ Remotes:
     github::kwb-r/kwb.plot,
     github::kwb-r/kwb.utils
 License: MIT + file LICENSE
-Title: Functions Used Within Different Kwb Monitoring Projects
-Description: Functions used within different KWB projects dealing with 
-    monitoring data.
+URL: https://github.com/KWB-R/kwb.monitoring
+BugReports: https://github.com/KWB-R/kwb.monitoring/issues
 RoxygenNote: 6.0.1
