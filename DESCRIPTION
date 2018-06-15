@@ -17,3 +17,5 @@ License: MIT + file LICENSE
 URL: https://github.com/KWB-R/kwb.monitoring
 BugReports: https://github.com/KWB-R/kwb.monitoring/issues
 RoxygenNote: 6.0.1
+Suggests: 
+    testthat
