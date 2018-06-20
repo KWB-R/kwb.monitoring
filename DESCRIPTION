@@ -7,7 +7,7 @@ Authors@R: c(person("Hauke", "Sonnenberg", , "hauke.sonnenberg@kompetenz-wasser.
              person("Kompetenzzentrum Wasser Berlin gGmbH", role = c("cph")))
 Imports: gplots, kwb.base, kwb.datetime, kwb.event, kwb.plot, kwb.utils, 
     lattice, lubridate, manipulate
-Remotes: 
+Remotes:
     github::kwb-r/kwb.base,
     github::kwb-r/kwb.datetime,
     github::kwb-r/kwb.event,
@@ -17,5 +17,8 @@ License: MIT + file LICENSE
 URL: https://github.com/KWB-R/kwb.monitoring
 BugReports: https://github.com/KWB-R/kwb.monitoring/issues
 RoxygenNote: 6.0.1
-Suggests: 
-    testthat
+Suggests:
+    testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

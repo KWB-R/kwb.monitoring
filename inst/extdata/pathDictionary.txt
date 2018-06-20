@@ -1,0 +1,4 @@
+FLOW_DIR = <RAW_DIR>/test-project/KWB/flows
+FLOW_CSV = <FLOW_DIR>/<FLOW_SUBDIR_CURRENT>/flows.csv
+HYDRAULIC_DATA_RAW = <RAW_DIR>/flows_raw.csv
+OVERVIEW_HQ_DATA_PDF = <RAW_DIR>/levels_and_flows.pdf
