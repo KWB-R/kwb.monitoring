@@ -46,21 +46,26 @@ validateAndFillHydraulicData <- function(
   hydraulicData, 
   tstep.fill.s = selectElements(settings, "tstep.fill.s"),
   replaceMissingQMethod = selectElements(settings, "replaceMissingQMethod"),
-  regressionModels = selectElements(selectElements(selectElements(
-    settings, "regression"), "models"), selectElements(settings, "station")),
+  regressionModels = selectElements(selectElements(
+    settings, "regression"), "models")[[selectElements(settings, "station")]],
   regressionUsage = selectElements(selectElements(selectElements(
     settings, "regression"), "usage"), selectElements(settings, "station")),
   hydraulicEvents = NULL,
   additionalColumns = NULL,
-  modelDir = kwb.utils::resolve("REGRESSION_DIR", dict = selectElements(
+  modelDir = getOrCreatePath("REGRESSION_DIR", dict = selectElements(
     settings, "dictionary"
   )),
   settings = NULL
 )
 {
+  #kwb.utils::assignArgumentDefaults(kwb.monitoring::validateAndFillHydraulicData)
+  #kwb.utils::assignPackageObjects("kwb.monitoring")
+  
   # if there is no column "H", introduce one with values 0
   if (is.null(hydraulicData$H)) {
+    
     message("There is no column \"H\". I introduce it with values 0!")
+    
     hydraulicData$H <- rep(0, nrow(hydraulicData))
   }
   
@@ -77,8 +82,11 @@ validateAndFillHydraulicData <- function(
   # fill gaps and interpolate within the time intervals given by begin and end 
   # times of the hydraulic events
   limits <- if (is.null(hydraulicEvents)) {
+    
     NULL
+    
   } else {
+    
     selectColumns(hydraulicEvents, c("tBeg", "tEnd"))
   }
   
