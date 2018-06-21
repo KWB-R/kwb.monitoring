@@ -1,5 +1,5 @@
 ---
-title: "R Script supporting the creation of a volume-proportional composite sample"
+title: "R Script Supporting the Creation of a Volume-Proportional Composite Sample"
 author: "Hauke Sonnenberg"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -16,25 +16,31 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Installation of required packages
+# Install Required Packages
 
 In order to run the script you need a bunch of R packages all of which are
-either provided together with this tutorial or are publicly available on 
-[CRAN (Comprehensive R Archive Network)](http://cran.r-project.org/web/packages/available_packages_by_name.html).
+are publicly available, either on 
+[CRAN (Comprehensive R Archive Network)](http://cran.r-project.org/web/packages/available_packages_by_name.html)
+or on [our GitHub-Account](https://github.com/kwb-r).
 
-The script described in the following requires the package **kwb.monitoring**
-and all its dependencies. All these packages are automatically installed by
+The script described in the following requires the package 
+[kwb.monitoring](https://github.com/kwb-r/kwb.monitoring) and all its 
+dependencies. All these packages are automatically installed by
 running the following code. Make sure to have none of the packages to be
 installed already loaded. 
 
 ```{r eval = FALSE}
-#devtools::install_github("kwb-r/kwb.monitoring", dependencies = TRUE)
+# Install devtools, if required, from CRAN
+# install.packages("devtools")
+
+# Install kwb.monitoring from GitHub
+devtools::install_github("kwb-r/kwb.monitoring", dependencies = TRUE)
 ```
 
-# Loading the package
+# Load kwb.monitoring
 
 We are now ready to start the actual script. First, you need to load the
-package **kwb.monitoring** and all the packages that it depends on:
+package kwb.monitoring and all the packages that it depends on:
 
 ```{r}
 library(kwb.monitoring)
@@ -78,46 +84,65 @@ calculate any composite sampling for these intervals.
 script. For an explanation of these settings, see the comments in the script 
 below or the help page of the function `kwb.monitoring::configure`.
 
+## Define Helper Functions
+
 ```{r}
 as_utc <- function(x) as.POSIXct(x, tc = "UTC")
+```
 
+## Define Event Settings
+
+```{r}
 # eventSettings ----------------------------------------------------------------
 eventSettings <- list(
   
-  #Hthresholds = c(ALT=0.07, NEU=0.07), 
-  #Qthresholds = c(ALT=5, NEU=2.5),
+  #Hthresholds = c(ALT = 0.07, NEU = 0.07), 
+  #Qthresholds = c(ALT = 5, NEU = 2.5),
   
   ALT = rbind(
-    data.frame(tBeg = as_utc("2014-03-27 10:04:00"), 
-               tEnd = as_utc("2014-04-23 17:14:59"), 
-               Hthreshold = 0.07, 
-               Qthreshold = 2),
     
-    data.frame(tBeg = as_utc("2014-04-23 17:00:00"), 
-               tEnd = as_utc("2014-04-23 21:01:00"), 
-               Hthreshold = 0.07, 
-               Qthreshold = 4)
+    data.frame(
+      tBeg = as_utc("2014-03-27 10:04:00"), 
+      tEnd = as_utc("2014-04-23 17:14:59"), 
+      Hthreshold = 0.07, 
+      Qthreshold = 2
+    ),
+    
+    data.frame(
+      tBeg = as_utc("2014-04-23 17:00:00"), 
+      tEnd = as_utc("2014-04-23 21:01:00"), 
+      Hthreshold = 0.07, 
+      Qthreshold = 4
+    )
     
     # you may continue...
     # , data.frame(...)
-    ),
+  ),
   
   NEU = rbind(
-    data.frame(tBeg = as_utc("2014-01-01 00:00:00"), 
-               tEnd = as_utc("2014-07-09 19:00:00"), 
-               Hthreshold = 0.07, 
-               Qthreshold = 2.5),  
+    data.frame(
+      tBeg = as_utc("2014-01-01 00:00:00"), 
+      tEnd = as_utc("2014-07-09 19:00:00"), 
+      Hthreshold = 0.07, 
+      Qthreshold = 2.5
+    ),
     
-    data.frame(tBeg = as_utc("2014-07-09 19:00:01"), 
-               tEnd = as_utc("2014-07-09 22:00:00"), 
-               Hthreshold = 0.07, 
-               Qthreshold = 5)
+    data.frame(
+      tBeg = as_utc("2014-07-09 19:00:01"), 
+      tEnd = as_utc("2014-07-09 22:00:00"), 
+      Hthreshold = 0.07, 
+      Qthreshold = 5
+    )
     
     # you may continue...
     # , data.frame(...)
-    )
   )
+)
+```
 
+## Define Regression Settings
+
+```{r}
 # regressionSettings -----------------------------------------------------------
 # models: which model file is to be used within which time interval
 # usage: in which time intervals are the correlated values to be used
@@ -127,63 +152,83 @@ regressionSettings <- list(
   # Which regression models are to be used within different time intervals?
   models = list(
     
-    ALT = rbind(
-      data.frame(from = "2000-01-01", 
-                 to = "2020-01-01", 
-                 modelFile = "ALT_01_regressionModel.txt")
-      ),
-    
-    NEU = rbind(
-      data.frame(from = "2014-03-01", 
-                 to = "2014-10-01", 
-                 modelFile = "NEU_01_regressionModel.txt"),
-      
-      data.frame(from = "2014-10-02", 
-                 to = "2015-02-05", 
-                 modelFile = "NEU_02_regressionMode.txt"),
-      
-      data.frame(from = "2015-02-06", 
-                 to = "2015-12-31", 
-                 modelFile = "March_to_october_NEU_regressionModel.txt")
-      )
-    ),
+    # ALT = rbind(
+    #   data.frame(from = "2000-01-01", 
+    #              to = "2020-01-01", 
+    #              modelFile = "ALT_01_regressionModel.txt")
+    #   ),
+    # 
+    # NEU = rbind(
+    #   data.frame(from = "2014-03-01", 
+    #              to = "2014-10-01", 
+    #              modelFile = "NEU_01_regressionModel.txt"),
+    #   
+    #   data.frame(from = "2014-10-02", 
+    #              to = "2015-02-05", 
+    #              modelFile = "NEU_02_regressionMode.txt"),
+    #   
+    #   data.frame(from = "2015-02-06", 
+    #              to = "2015-12-31", 
+    #              modelFile = "March_to_october_NEU_regressionModel.txt")
+    #   )
+  ),
   
   # In which time intervals shall the regression models actually be applied?
   usage = list(
     
     ALT = rbind(
       data.frame(from = "2015-01-30", to = "2015-02-01")
-      ),
+    ),
     
     NEU = rbind(
-      data.frame(from = "2014-04-18", to = "2014-06-13"), 
+      data.frame(from = "2014-04-18", to = "2014-06-13"),
       data.frame(from = "2014-07-09", to = "2014-08-31")
-      )
     )
   )
+)
+```
 
+## Define Time Intervals to be Removed
+
+```{r}
 # intervalsToRemove ------------------------------------------------------------
 intervalsToRemove <- list(
   
   ALT = list(
-    lubridate::interval(lubridate::ymd_hm("2014-04-03 17:38"), 
-                        lubridate::ymd_hm("2014-04-03 18:12")),
-    lubridate::interval(lubridate::ymd_hm("2014-04-04 12:00"), 
-                        lubridate::ymd_hm("2014-04-04 13:10"))
+    lubridate::interval(
+      lubridate::ymd_hm("2014-04-03 17:38"), 
+      lubridate::ymd_hm("2014-04-03 18:12")
     ),
+    lubridate::interval(
+      lubridate::ymd_hm("2014-04-04 12:00"), 
+      lubridate::ymd_hm("2014-04-04 13:10")
+    )
+  ),
   
   NEU = list(
-    lubridate::interval(lubridate::ymd_hm("2014-04-18 10:58"), 
-                        lubridate::ymd_hm("2014-04-18 21:18")),
-    lubridate::interval(lubridate::ymd_hm("2014-04-21 12:46"), 
-                        lubridate::ymd_hm("2014-04-21 16:30"))
+    lubridate::interval(
+      lubridate::ymd_hm("2014-04-18 10:58"), 
+      lubridate::ymd_hm("2014-04-18 21:18")
+    ),
+    lubridate::interval(
+      lubridate::ymd_hm("2014-04-21 12:46"), 
+      lubridate::ymd_hm("2014-04-21 16:30")
     )
-  ) 
+  )
+) 
+```
 
+## Create a Testing Environment
+
+```{r}
 testdir <- system.file("extdata", package = "kwb.monitoring")
 stopifnot(testdir != "")
 rawdir <- kwb.utils::createDirectory(file.path(testdir, "rawdata"))
+```
 
+## Configure the Script
+
+```{r}
 # Main Configuration -----------------------------------------------------------
 settings <- configure(
   
@@ -194,20 +239,20 @@ settings <- configure(
   station = "ALT", # "NEU"
   
   # "left", "centre" or "right" 
-  sampleEventMethod="centre",
+  sampleEventMethod = "centre",
   
   # either "interpolate" or "predict"
   # note the regressionSettings -> predict is only used for the intervals set 
   # in "usage", otherwise interpolate will be used
-  replaceMissingQMethod = "predict", 
+  replaceMissingQMethod = "interpolate", 
   
   # which bottles are to be considered (read from the sampler file)?
   bottlesToConsider = NA, # NA means: all bottles
   #bottlesToConsider = 1:4,
   
   # which bottles are to be discarded (because they are not full)?
-  bottlesToDiscard=NA,
-  #bottlesToDiscard=7,
+  bottlesToDiscard = NA,
+  #bottlesToDiscard = 7,
   
   # sample volume (in mL) given to the bottle representing the time 
   # interval with highest flow volume
@@ -277,6 +322,8 @@ settings$regression = regressionSettings
 rainDataFile <- file.path(settings$rawdir, "..", "RData", "data_rain.RData")
 ```
 
+# Provide Create a Testing Environment
+
 ```{r}
 # Create a test directory structure for raw data
 flow_dir <- getOrCreatePath("FLOW_DIR", dictionary)
@@ -297,9 +344,11 @@ writeLines(con = file, c(
   "01.06.2018\t00:01:00\t0.2\t0.1\t0.1\t0.1",
   "01.06.2018\t00:02:00\t0.3\t0.1\t0.1\t0.1", 
   "01.06.2018\t00:03:00\t0.2\t0.1\t0.1\t0.1",
-  "01.06.2018\t00:02:00\t0.1\t0.1\t0.1\t0.1", 
-  "01.06.2018\t00:03:00\t0.0\t0.1\t0.1\t0.1"
+  "01.06.2018\t00:04:00\t0.1\t0.1\t0.1\t0.1", 
+  "01.06.2018\t00:05:00\t0.0\t0.1\t0.1\t0.1"
 ))
+
+kwb.utils::createDirectory(getOrCreatePath("SAMPLE_DIR", dictionary))
 ```
 
 # User defined functions
@@ -646,67 +695,69 @@ hydraulicData <- removeIntervals(
 )
 
 # Build different kinds of events (hydraulic, sample, merged), required
-events <- getAllTypesOfEvents(hydraulicData, settings, readSamplerFile)
+events <- getAllTypesOfEvents(
+  hydraulicData, settings, FUN.readSamplerFile = readSamplerFile
+)
 
 # Plot overview of event limits (optional)
-plotEventOverview(events[c("hydraulic", "samplerEvents", "merged")], settings)
-
-# Write events to files (optional)
-writeCsvToPathFromDictionary(events$samplingEvents, "SAMPLING_EVENTS", settings, 
-                             open.directory = FALSE)
-writeCsvToPathFromDictionary(events$bottleEvents, "BOTTLE_EVENTS", settings, 
-                             open.directory = FALSE)
-writeCsvToPathFromDictionary(events$samplerEvents, "SAMPLER_EVENTS", settings, 
-                             open.directory = FALSE)
-
-# Add statistics to hydraulic events
-eventsAndStat <- addStatisticsToEvents(events, hydraulicData.all)
-
-# Write event including statistics to file (optional)
-writeCsvToPathFromDictionary(
-  eventsAndStat$hydraulic, "HYDRAULIC_EVENTS", settings, 
-  open.directory = FALSE
-)
-
-# Load rain data if available
-if (file.exists(rainDataFile)) {
-  load(rainDataFile)
-} else {
-  rainData <- NULL #(if you dont want to show rain data)    
-}
-
-seriesNames <- rainGaugesCorrelatedWithStation(station = settings$station)
-
-hydraulicEvents <- eventsAndStat$hydraulic
-
-Vt <- settings$Vthresholds[settings$station]
-
-hydraulicEvents <- kwb.utils::renameColumns(
-  hydraulicEvents, list(event = "eventNumber")
-)
-
-# Select events with a minimum volume
-selected <- !is.na(hydraulicEvents$V.m3) & hydraulicEvents$V.m3 > Vt
-events.to.plot <- hydraulicEvents[selected,]
-
-# plot hydraulic events with rain
-plot_hydraulic_events(
-  hydraulicData = hydraulicData, 
-  settings = settings, 
-  eventsAndStat = events.to.plot,
-  to.pdf = TRUE, 
-  rainData = rainData, 
-  gauges = seriesNames[1:3]
-)  
-
-# Analyse one sampler event given by its number ("sampleEventIndex")
-# according to the order in the sample log files. By giving a negative index
-# you may choose events from the end (-1 means "last", -2 one before last,
-# etc.)
-processSampleEvent(
-  hydraulicData, settings, events, eventsAndStat, sampleEventIndex = -2, 
-  to.pdf = FALSE
-)
+# plotEventOverview(events[c("hydraulic", "samplerEvents", "merged")], settings)
+# 
+# # Write events to files (optional)
+# writeCsvToPathFromDictionary(events$samplingEvents, "SAMPLING_EVENTS", settings, 
+#                              open.directory = FALSE)
+# writeCsvToPathFromDictionary(events$bottleEvents, "BOTTLE_EVENTS", settings, 
+#                              open.directory = FALSE)
+# writeCsvToPathFromDictionary(events$samplerEvents, "SAMPLER_EVENTS", settings, 
+#                              open.directory = FALSE)
+# 
+# # Add statistics to hydraulic events
+# eventsAndStat <- addStatisticsToEvents(events, hydraulicData.all)
+# 
+# # Write event including statistics to file (optional)
+# writeCsvToPathFromDictionary(
+#   eventsAndStat$hydraulic, "HYDRAULIC_EVENTS", settings, 
+#   open.directory = FALSE
+# )
+# 
+# # Load rain data if available
+# if (file.exists(rainDataFile)) {
+#   load(rainDataFile)
+# } else {
+#   rainData <- NULL #(if you dont want to show rain data)    
+# }
+# 
+# seriesNames <- rainGaugesCorrelatedWithStation(station = settings$station)
+# 
+# hydraulicEvents <- eventsAndStat$hydraulic
+# 
+# Vt <- settings$Vthresholds[settings$station]
+# 
+# hydraulicEvents <- kwb.utils::renameColumns(
+#   hydraulicEvents, list(event = "eventNumber")
+# )
+# 
+# # Select events with a minimum volume
+# selected <- !is.na(hydraulicEvents$V.m3) & hydraulicEvents$V.m3 > Vt
+# events.to.plot <- hydraulicEvents[selected,]
+# 
+# # plot hydraulic events with rain
+# plot_hydraulic_events(
+#   hydraulicData = hydraulicData, 
+#   settings = settings, 
+#   eventsAndStat = events.to.plot,
+#   to.pdf = TRUE, 
+#   rainData = rainData, 
+#   gauges = seriesNames[1:3]
+# )  
+# 
+# # Analyse one sampler event given by its number ("sampleEventIndex")
+# # according to the order in the sample log files. By giving a negative index
+# # you may choose events from the end (-1 means "last", -2 one before last,
+# # etc.)
+# processSampleEvent(
+#   hydraulicData, settings, events, eventsAndStat, sampleEventIndex = -2, 
+#   to.pdf = FALSE
+# )
 ```
 
 # Script II: Finding and storing H/Q-regression models
