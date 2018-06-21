@@ -260,23 +260,25 @@ availableAutoSamplerFiles2 <- function(rootDirectory, station, dictionaryFile)
 #' @param warn if TRUE, a warning is given if there are no sample files
 #' 
 availableAutoSamplerFiles <- function(
-  sampleDirectory = kwb.utils::resolve("SAMPLE_DIR", dictionary),
-  pattern = kwb.utils::resolve("SAMPLE_CSV_PATTERN", dictionary),
+  sampleDirectory = getOrCreatePath("SAMPLE_DIR", dictionary),
+  pattern = do_resolve("SAMPLE_CSV_PATTERN", dictionary),
   dictionary = NULL, 
   warn = TRUE
 )
 {
-  if (!file.exists(sampleDirectory)) {
-    stop(sprintf("There is no folder \"%s\"!", sampleDirectory))
+  if (! file.exists(sampleDirectory)) {
+    
+    clean_stop(sprintf("There is no folder \"%s\"!", sampleDirectory))
   }
   
   sampleFiles <- dir(sampleDirectory, pattern, full.names=TRUE)  
   
   if (warn && isNullOrEmpty(sampleFiles)) {
-    warning(
-      sprintf(
-        "There are no sample files (matching \"%s\") in \"%s\"",
-        pattern, sampleDirectory))
+    
+    clean_warning(sprintf(
+      "There are no sample files (matching \"%s\") in:\n  \"%s\"",
+      pattern, sampleDirectory
+    ))
   }
   
   sampleFiles
