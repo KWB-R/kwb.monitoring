@@ -21,20 +21,17 @@
 <!-- clipboard.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script>
 
-<!-- sticky kit -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script>
-
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
+<script src="../jquery.sticky-kit.min.js"></script>
 <script src="../pkgdown.js"></script>
 
 
 
 <meta property="og:title" content="Available "sample_log"-Files — availableAutoSamplerFiles" />
 
-<meta property="og:description" content="Available &quot;sample_log&quot;-Files" />
+<meta property="og:description" content="Available "sample_log"-Files" />
 <meta name="twitter:card" content="summary" />
-
 
 
 <!-- mathjax -->
@@ -76,6 +73,18 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="../articles/tutorial.html">R Script Supporting the Creation of a Volume-Proportional Composite Sample</a>
+    </li>
+  </ul>
+</li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
@@ -108,8 +117,8 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>availableAutoSamplerFiles</span>(<span class='kw'>sampleDirectory</span> <span class='kw'>=</span> <span class='kw pkg'>kwb.utils</span><span class='kw ns'>::</span><span class='fu'><a href='http://www.rdocumentation.org/packages/kwb.utils/topics/resolve'>resolve</a></span>(<span class='st'>"SAMPLE_DIR"</span>,
-  <span class='no'>dictionary</span>), <span class='kw'>pattern</span> <span class='kw'>=</span> <span class='kw pkg'>kwb.utils</span><span class='kw ns'>::</span><span class='fu'><a href='http://www.rdocumentation.org/packages/kwb.utils/topics/resolve'>resolve</a></span>(<span class='st'>"SAMPLE_CSV_PATTERN"</span>, <span class='no'>dictionary</span>),
+    <pre class="usage"><span class='fu'>availableAutoSamplerFiles</span>(<span class='kw'>sampleDirectory</span> <span class='kw'>=</span> <span class='fu'><a href='getOrCreatePath.html'>getOrCreatePath</a></span>(<span class='st'>"SAMPLE_DIR"</span>,
+  <span class='no'>dictionary</span>), <span class='kw'>pattern</span> <span class='kw'>=</span> <span class='fu'>do_resolve</span>(<span class='st'>"SAMPLE_CSV_PATTERN"</span>, <span class='no'>dictionary</span>),
   <span class='kw'>dictionary</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>warn</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
