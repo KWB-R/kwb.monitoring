@@ -5,5 +5,4 @@
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/kwb.monitoring)]()
 
 
-# kwb.monitoring
 Functions Used Within Different Kwb Monitoring Projects 
