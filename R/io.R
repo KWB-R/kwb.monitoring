@@ -114,8 +114,10 @@ writeCsvToPathFromDictionary <- function(
 
 # .writeToCsv ------------------------------------------------------------------
 
-.writeToCsv <- function(dataFrame, filePath, settings)
+.writeToCsv <- function(dataFrame, filePath, settings, dbg = TRUE)
 {
+  kwb.utils::catIf(dbg, sprintf("Writing to '%s'... ", filePath))
+  
   utils::write.table(
     dataFrame, 
     file = filePath, 
@@ -124,6 +126,8 @@ writeCsvToPathFromDictionary <- function(
     row.names = FALSE, 
     na = ""
   )
+  
+  kwb.utils::catIf(dbg, "ok.\n")
 }
 
 # writeDataAndOpenDirectory ----------------------------------------------------
