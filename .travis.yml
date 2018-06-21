@@ -3,6 +3,7 @@ r:
   - oldrel 
   - release
 sudo: required
+cache: packages
 r_packages:
   - devtools
   - covr
