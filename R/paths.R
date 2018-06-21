@@ -45,7 +45,10 @@ getOrCreatePath <- function(
   
   if (filePath == variableName && stop.on.no.resolving) {
     
-    stop("Could not resolve '", variableName, "'")
+    stop(
+      "Could not resolve the placeholder '", variableName, "'.\n", 
+      "Please define a key of this name in the path dictionary.", call. = FALSE
+    )
   }
   
   if (create.dir) {
