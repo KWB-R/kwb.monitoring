@@ -14,25 +14,27 @@ getAllTypesOfEvents <- function(
 ) 
 {
   hydraulicEvents <- if (! is.null(hydraulicData)) {
+    
      getHydraulicEvents(hydraulicData, settings)
+    
   } else {
+    
     NULL
   }
 
   if (isNullOrEmpty(hydraulicEvents)) {
-    warning(
-      paste("There are no hydraulic events according to the defined criteria",
-            "(or hydraulicData was NULL)!")
+    
+    clean_warning(
+      "There are no hydraulic events according to the defined criteria ",
+      "(or hydraulicData was NULL)!"
     )
   }
   
-  samplingEvents <- getSamplerEvents(
-    settings = settings, 
-    FUN.readSamplerFile = FUN.readSamplerFile
-  )
+  samplingEvents <- getSamplerEvents(settings, FUN.readSamplerFile)
   
   if (isNullOrEmpty(samplingEvents)) {
-    warning("\n\n*** There are no sampling events!\n")
+    
+    clean_warning("There are no sampling events!")
   }
   
   mergedEvents <- getMergedEvents(
@@ -40,13 +42,17 @@ getAllTypesOfEvents <- function(
     samplerEvents = samplingEvents$samplerEvents,
     signalWidth = settings$tstep.fill.s # = hsSigWidth(hydraulicEvents)
   )
+  
   #cat("time unit of mergedEvents:", .getCurrentTimeUnitOrStop(mergedEvents), "\n")
   #cat("time unit of hydraulicEvents:", .getCurrentTimeUnitOrStop(hydraulicEvents), "\n")
   
   # set pauses of merged events according to the pauses of the hydraulic events
   # that are fully contained in the merged events
-  setPausesOfMergedEvents(hydraulicEvents, mergedEvents)
-  
+  if (! isNullOrEmpty(mergedEvents)) {
+    
+    mergedEvents <- setPausesOfMergedEvents(hydraulicEvents, mergedEvents)  
+  }
+
   c(samplingEvents, list(hydraulic = hydraulicEvents, merged = mergedEvents))
 }
 
@@ -188,18 +194,27 @@ getIndicesWithinEvents <- function(
 #' 
 #' @param settings passed to \code{\link{getSampleInformation}}
 #' @param FUN.readSamplerFile passed to \code{\link{getSampleInformation}}
+#' @param warn passed to \code{\link{availableAutoSamplerFiles}}
 #' 
-getSamplerEvents <- function(settings, FUN.readSamplerFile)
+getSamplerEvents <- function(settings, FUN.readSamplerFile, warn = TRUE)
 {
-  samplerFiles <- availableAutoSamplerFiles(dictionary = settings$dictionary)
-  
-  samplingEvents <- getSampleInformation(
-    sampleEventIndices = seq_len(length(samplerFiles)), 
-    FUN.readSamplerFile = FUN.readSamplerFile,
-    settings = settings
+  samplerFiles <- availableAutoSamplerFiles(
+    dictionary = settings$dictionary, warn = warn
   )
   
-  samplingEvents
+  if (length(samplerFiles) > 0) {
+    
+    getSampleInformation(
+      sampleEventIndices = seq_len(length(samplerFiles)), 
+      FUN.readSamplerFile = FUN.readSamplerFile,
+      settings = settings
+    )
+    
+  } else {
+    
+    NULL
+    
+  }
 }
 
 # getMergedEvents --------------------------------------------------------------
@@ -212,13 +227,19 @@ getSamplerEvents <- function(settings, FUN.readSamplerFile)
 #' 
 getMergedEvents <- function(hydraulicEvents, samplerEvents, signalWidth)
 {
+  template <- "No %sEvents given to getMergedEvents(). Returning %sEvents."
+  
   if (is.null(hydraulicEvents)) {
-    warning("No hydraulicEvents given. Returning samplerEvents.")
+    
+    clean_warning(sprintf(template, "hydraulic", "sampler"))
+
     return (samplerEvents)
   }
   
   if (is.null(samplerEvents)) {
-    warning("No samplerEvents events given. Returning hydraulicEvents.")
+    
+    clean_warning(sprintf(template, "sampler", "hydraulic"))
+
     return (hydraulicEvents)
   }
   
