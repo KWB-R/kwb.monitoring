@@ -97,7 +97,7 @@
 <span class="co"># install.packages("devtools")</span>
 
 <span class="co"># Install kwb.monitoring from GitHub</span>
-devtools::<span class="kw">install_github</span>(<span class="st">"kwb-r/kwb.monitoring"</span>, <span class="dt">dependencies =</span> <span class="ot">TRUE</span>)</code></pre></div>
+devtools<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/devtools/topics/install_github">install_github</a></span>(<span class="st">"kwb-r/kwb.monitoring"</span>, <span class="dt">dependencies =</span> <span class="ot">TRUE</span>)</code></pre></div>
 </div>
 <div id="load-kwb-monitoring" class="section level1">
 <h1 class="hasAnchor">
@@ -119,7 +119,7 @@ devtools::<span class="kw">install_github</span>(<span class="st">"kwb-r/kwb.mon
 <div id="define-helper-functions" class="section level2">
 <h2 class="hasAnchor">
 <a href="#define-helper-functions" class="anchor"></a>Define Helper Functions</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">as_utc &lt;-<span class="st"> </span>function(x) <span class="kw">as.POSIXct</span>(x, <span class="dt">tc =</span> <span class="st">"UTC"</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">as_utc &lt;-<span class="st"> </span><span class="cf">function</span>(x) <span class="kw">as.POSIXct</span>(x, <span class="dt">tc =</span> <span class="st">"UTC"</span>)</code></pre></div>
 </div>
 <div id="define-event-settings" class="section level2">
 <h2 class="hasAnchor">
@@ -224,24 +224,24 @@ regressionSettings &lt;-<span class="st"> </span><span class="kw">list</span>(
 intervalsToRemove &lt;-<span class="st"> </span><span class="kw">list</span>(
   
   <span class="dt">ALT =</span> <span class="kw">list</span>(
-    lubridate::<span class="kw">interval</span>(
-      lubridate::<span class="kw">ymd_hm</span>(<span class="st">"2014-04-03 17:38"</span>), 
-      lubridate::<span class="kw">ymd_hm</span>(<span class="st">"2014-04-03 18:12"</span>)
+    lubridate<span class="op">::</span><span class="kw"><a href="http://lubridate.tidyverse.org/reference/interval.html">interval</a></span>(
+      lubridate<span class="op">::</span><span class="kw"><a href="http://lubridate.tidyverse.org/reference/ymd_hms.html">ymd_hm</a></span>(<span class="st">"2014-04-03 17:38"</span>), 
+      lubridate<span class="op">::</span><span class="kw"><a href="http://lubridate.tidyverse.org/reference/ymd_hms.html">ymd_hm</a></span>(<span class="st">"2014-04-03 18:12"</span>)
     ),
-    lubridate::<span class="kw">interval</span>(
-      lubridate::<span class="kw">ymd_hm</span>(<span class="st">"2014-04-04 12:00"</span>), 
-      lubridate::<span class="kw">ymd_hm</span>(<span class="st">"2014-04-04 13:10"</span>)
+    lubridate<span class="op">::</span><span class="kw"><a href="http://lubridate.tidyverse.org/reference/interval.html">interval</a></span>(
+      lubridate<span class="op">::</span><span class="kw"><a href="http://lubridate.tidyverse.org/reference/ymd_hms.html">ymd_hm</a></span>(<span class="st">"2014-04-04 12:00"</span>), 
+      lubridate<span class="op">::</span><span class="kw"><a href="http://lubridate.tidyverse.org/reference/ymd_hms.html">ymd_hm</a></span>(<span class="st">"2014-04-04 13:10"</span>)
     )
   ),
   
   <span class="dt">NEU =</span> <span class="kw">list</span>(
-    lubridate::<span class="kw">interval</span>(
-      lubridate::<span class="kw">ymd_hm</span>(<span class="st">"2014-04-18 10:58"</span>), 
-      lubridate::<span class="kw">ymd_hm</span>(<span class="st">"2014-04-18 21:18"</span>)
+    lubridate<span class="op">::</span><span class="kw"><a href="http://lubridate.tidyverse.org/reference/interval.html">interval</a></span>(
+      lubridate<span class="op">::</span><span class="kw"><a href="http://lubridate.tidyverse.org/reference/ymd_hms.html">ymd_hm</a></span>(<span class="st">"2014-04-18 10:58"</span>), 
+      lubridate<span class="op">::</span><span class="kw"><a href="http://lubridate.tidyverse.org/reference/ymd_hms.html">ymd_hm</a></span>(<span class="st">"2014-04-18 21:18"</span>)
     ),
-    lubridate::<span class="kw">interval</span>(
-      lubridate::<span class="kw">ymd_hm</span>(<span class="st">"2014-04-21 12:46"</span>), 
-      lubridate::<span class="kw">ymd_hm</span>(<span class="st">"2014-04-21 16:30"</span>)
+    lubridate<span class="op">::</span><span class="kw"><a href="http://lubridate.tidyverse.org/reference/interval.html">interval</a></span>(
+      lubridate<span class="op">::</span><span class="kw"><a href="http://lubridate.tidyverse.org/reference/ymd_hms.html">ymd_hm</a></span>(<span class="st">"2014-04-21 12:46"</span>), 
+      lubridate<span class="op">::</span><span class="kw"><a href="http://lubridate.tidyverse.org/reference/ymd_hms.html">ymd_hm</a></span>(<span class="st">"2014-04-21 16:30"</span>)
     )
   )
 ) </code></pre></div>
@@ -250,9 +250,9 @@ intervalsToRemove &lt;-<span class="st"> </span><span class="kw">list</span>(
 <h2 class="hasAnchor">
 <a href="#create-a-testing-environment" class="anchor"></a>Create a Testing Environment</h2>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">testdir &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">"extdata"</span>, <span class="dt">package =</span> <span class="st">"kwb.monitoring"</span>)
-<span class="kw">stopifnot</span>(testdir !=<span class="st"> ""</span>)
-rawdir &lt;-<span class="st"> </span>kwb.utils::<span class="kw">createDirectory</span>(<span class="kw">file.path</span>(testdir, <span class="st">"rawdata"</span>))
-<span class="co">#&gt; The directory "/home/hauke/R/i686-pc-linux-gnu-library/3.3/kwb.monitoring/extdata/rawdata" was created.</span></code></pre></div>
+<span class="kw">stopifnot</span>(testdir <span class="op">!=</span><span class="st"> ""</span>)
+rawdir &lt;-<span class="st"> </span>kwb.utils<span class="op">::</span><span class="kw">createDirectory</span>(<span class="kw">file.path</span>(testdir, <span class="st">"rawdata"</span>))
+<span class="co">#&gt; The directory "/home/hsonne/R/packages/kwb.monitoring/extdata/rawdata" was created.</span></code></pre></div>
 </div>
 <div id="configure-the-script" class="section level2">
 <h2 class="hasAnchor">
@@ -305,13 +305,13 @@ settings &lt;-<span class="st"> </span><span class="kw"><a href="../reference/co
   
   <span class="co"># separation of events (how long in seconds may Hthreshold be underrun </span>
   <span class="co"># within an event?)</span>
-  <span class="dt">evtSepTime =</span> <span class="dv">4</span>*<span class="dv">3600</span>, <span class="co"># in seconds, here: 4 hours</span>
+  <span class="dt">evtSepTime =</span> <span class="dv">4</span><span class="op">*</span><span class="dv">3600</span>, <span class="co"># in seconds, here: 4 hours</span>
   
   <span class="co"># separation of sampled events within one and the same sampler file.</span>
   <span class="co"># If the difference between two sample times is greater than this time </span>
   <span class="co"># (in seconds) two sampled events are distinguished. Set to NA to prevent</span>
   <span class="co"># splitting of sampled events.  </span>
-  <span class="dt">sampleEventSeparationTime =</span> <span class="dv">4</span>*<span class="dv">3600</span>, <span class="co"># NA, # 3600</span>
+  <span class="dt">sampleEventSeparationTime =</span> <span class="dv">4</span><span class="op">*</span><span class="dv">3600</span>, <span class="co"># NA, # 3600</span>
   
   <span class="co"># minimum duration (in minutes) of hydraulic events to be considered</span>
   <span class="dt">durationThreshold =</span> <span class="dv">10</span>, <span class="co"># min</span>
@@ -335,19 +335,19 @@ dictionaryFile &lt;-<span class="st"> </span><span class="kw">system.file</span>
 <span class="co"># be resolved to full paths.</span>
 dictionary &lt;-<span class="st"> </span><span class="kw"><a href="../reference/pathDictionary.html">pathDictionary</a></span>(
   <span class="dt">dictionaryFile =</span> dictionaryFile,
-  <span class="dt">RAW_DIR =</span> settings$rawdir,
-  <span class="dt">STATION =</span> settings$station
+  <span class="dt">RAW_DIR =</span> settings<span class="op">$</span>rawdir,
+  <span class="dt">STATION =</span> settings<span class="op">$</span>station
 )
 
 <span class="co"># Assign the path dictionary to the main settings. </span>
-settings$dictionary &lt;-<span class="st"> </span>dictionary
+settings<span class="op">$</span>dictionary &lt;-<span class="st"> </span>dictionary
 
 <span class="co"># Make the event settings and regression settings part of the main settings</span>
-settings$event =<span class="st"> </span>eventSettings
-settings$regression =<span class="st"> </span>regressionSettings
+settings<span class="op">$</span>event =<span class="st"> </span>eventSettings
+settings<span class="op">$</span>regression =<span class="st"> </span>regressionSettings
 
 <span class="co"># Define the path to a .RData file containing rain data</span>
-rainDataFile &lt;-<span class="st"> </span><span class="kw">file.path</span>(settings$rawdir, <span class="st">".."</span>, <span class="st">"RData"</span>, <span class="st">"data_rain.RData"</span>)</code></pre></div>
+rainDataFile &lt;-<span class="st"> </span><span class="kw">file.path</span>(settings<span class="op">$</span>rawdir, <span class="st">".."</span>, <span class="st">"RData"</span>, <span class="st">"data_rain.RData"</span>)</code></pre></div>
 </div>
 </div>
 <div id="provide-create-a-testing-environment" class="section level1">
@@ -356,14 +356,14 @@ rainDataFile &lt;-<span class="st"> </span><span class="kw">file.path</span>(set
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Create a test directory structure for raw data</span>
 flow_dir &lt;-<span class="st"> </span><span class="kw"><a href="../reference/getOrCreatePath.html">getOrCreatePath</a></span>(<span class="st">"FLOW_DIR"</span>, dictionary)
 
-last_flow_dir &lt;-<span class="st"> </span>kwb.utils::<span class="kw">createDirectory</span>(<span class="kw">file.path</span>(flow_dir, <span class="st">"20180601"</span>))
-<span class="co">#&gt; The parent directory /home/hauke/R/i686-pc-linux-gnu-library/3.3/kwb.monitoring/extdata/rawdata/test-project/KWB/flows needs to be created first.</span>
-<span class="co">#&gt; The parent directory /home/hauke/R/i686-pc-linux-gnu-library/3.3/kwb.monitoring/extdata/rawdata/test-project/KWB needs to be created first.</span>
-<span class="co">#&gt; The parent directory /home/hauke/R/i686-pc-linux-gnu-library/3.3/kwb.monitoring/extdata/rawdata/test-project needs to be created first.</span>
-<span class="co">#&gt; The directory "/home/hauke/R/i686-pc-linux-gnu-library/3.3/kwb.monitoring/extdata/rawdata/test-project" was created.</span>
-<span class="co">#&gt; The directory "/home/hauke/R/i686-pc-linux-gnu-library/3.3/kwb.monitoring/extdata/rawdata/test-project/KWB" was created.</span>
-<span class="co">#&gt; The directory "/home/hauke/R/i686-pc-linux-gnu-library/3.3/kwb.monitoring/extdata/rawdata/test-project/KWB/flows" was created.</span>
-<span class="co">#&gt; The directory "/home/hauke/R/i686-pc-linux-gnu-library/3.3/kwb.monitoring/extdata/rawdata/test-project/KWB/flows/20180601" was created.</span>
+last_flow_dir &lt;-<span class="st"> </span>kwb.utils<span class="op">::</span><span class="kw">createDirectory</span>(<span class="kw">file.path</span>(flow_dir, <span class="st">"20180601"</span>))
+<span class="co">#&gt; The parent directory /home/hsonne/R/packages/kwb.monitoring/extdata/rawdata/test-project/KWB/flows needs to be created first.</span>
+<span class="co">#&gt; The parent directory /home/hsonne/R/packages/kwb.monitoring/extdata/rawdata/test-project/KWB needs to be created first.</span>
+<span class="co">#&gt; The parent directory /home/hsonne/R/packages/kwb.monitoring/extdata/rawdata/test-project needs to be created first.</span>
+<span class="co">#&gt; The directory "/home/hsonne/R/packages/kwb.monitoring/extdata/rawdata/test-project" was created.</span>
+<span class="co">#&gt; The directory "/home/hsonne/R/packages/kwb.monitoring/extdata/rawdata/test-project/KWB" was created.</span>
+<span class="co">#&gt; The directory "/home/hsonne/R/packages/kwb.monitoring/extdata/rawdata/test-project/KWB/flows" was created.</span>
+<span class="co">#&gt; The directory "/home/hsonne/R/packages/kwb.monitoring/extdata/rawdata/test-project/KWB/flows/20180601" was created.</span>
 
 file &lt;-<span class="st"> </span><span class="kw">file.path</span>(last_flow_dir, <span class="st">"flows.csv"</span>)
 
@@ -373,7 +373,7 @@ file &lt;-<span class="st"> </span><span class="kw">file.path</span>(last_flow_d
   <span class="st">"Datum"</span>,
   <span class="st">"Fenster min"</span>,
   <span class="st">"Fenster max"</span>,
-  <span class="kw">paste0</span>(<span class="st">"skip_"</span>, <span class="dv">6</span>:<span class="dv">8</span>),
+  <span class="kw">paste0</span>(<span class="st">"skip_"</span>, <span class="dv">6</span><span class="op">:</span><span class="dv">8</span>),
   <span class="st">"Datum</span><span class="ch">\t</span><span class="st">Uhrzeit</span><span class="ch">\t</span><span class="st">H</span><span class="ch">\t</span><span class="st">v</span><span class="ch">\t</span><span class="st">Q</span><span class="ch">\t</span><span class="st">T"</span>,
   <span class="st">"01.06.2018</span><span class="ch">\t</span><span class="st">00:00:00</span><span class="ch">\t</span><span class="st">0.1</span><span class="ch">\t</span><span class="st">0.1</span><span class="ch">\t</span><span class="st">0.1</span><span class="ch">\t</span><span class="st">0.1"</span>, 
   <span class="st">"01.06.2018</span><span class="ch">\t</span><span class="st">00:01:00</span><span class="ch">\t</span><span class="st">0.2</span><span class="ch">\t</span><span class="st">0.1</span><span class="ch">\t</span><span class="st">0.1</span><span class="ch">\t</span><span class="st">0.1"</span>,
@@ -383,9 +383,9 @@ file &lt;-<span class="st"> </span><span class="kw">file.path</span>(last_flow_d
   <span class="st">"01.06.2018</span><span class="ch">\t</span><span class="st">00:05:00</span><span class="ch">\t</span><span class="st">0.0</span><span class="ch">\t</span><span class="st">0.1</span><span class="ch">\t</span><span class="st">0.1</span><span class="ch">\t</span><span class="st">0.1"</span>
 ))
 
-kwb.utils::<span class="kw">createDirectory</span>(<span class="kw"><a href="../reference/getOrCreatePath.html">getOrCreatePath</a></span>(<span class="st">"SAMPLE_DIR"</span>, dictionary))
-<span class="co">#&gt; The directory "/home/hauke/R/i686-pc-linux-gnu-library/3.3/kwb.monitoring/extdata/rawdata/test-project/KWB/samples" was created.</span>
-<span class="co">#&gt; [1] "/home/hauke/R/i686-pc-linux-gnu-library/3.3/kwb.monitoring/extdata/rawdata/test-project/KWB/samples"</span></code></pre></div>
+kwb.utils<span class="op">::</span><span class="kw">createDirectory</span>(<span class="kw"><a href="../reference/getOrCreatePath.html">getOrCreatePath</a></span>(<span class="st">"SAMPLE_DIR"</span>, dictionary))
+<span class="co">#&gt; The directory "/home/hsonne/R/packages/kwb.monitoring/extdata/rawdata/test-project/KWB/samples" was created.</span>
+<span class="co">#&gt; [1] "/home/hsonne/R/packages/kwb.monitoring/extdata/rawdata/test-project/KWB/samples"</span></code></pre></div>
 </div>
 <div id="user-defined-functions" class="section level1">
 <h1 class="hasAnchor">
@@ -399,19 +399,19 @@ kwb.utils::<span class="kw">createDirectory</span>(<span class="kw"><a href="../
 <li><p><code>processSampleEvent</code> defines how to proceed during the analysis of one so called “sample event”. With sample event we mean the time limits that are logged by the auto sampler that is triggered by the measured water level.</p></li>
 </ul>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># read_hydraulics --------------------------------------------------------------</span>
-read_hydraulics &lt;-<span class="st"> </span>function(settings)
+read_hydraulics &lt;-<span class="st"> </span><span class="cf">function</span>(settings)
 {
-  flowDirectory &lt;-<span class="st"> </span><span class="kw"><a href="../reference/getOrCreatePath.html">getOrCreatePath</a></span>(<span class="st">"FLOW_DIR"</span>, <span class="dt">dictionary =</span> settings$dictionary)
+  flowDirectory &lt;-<span class="st"> </span><span class="kw"><a href="../reference/getOrCreatePath.html">getOrCreatePath</a></span>(<span class="st">"FLOW_DIR"</span>, <span class="dt">dictionary =</span> settings<span class="op">$</span>dictionary)
   
   flowSubdirCurrent &lt;-<span class="st"> </span><span class="kw">getCurrentFlowSubDirectory</span>(flowDirectory)
   
   csv &lt;-<span class="st"> </span><span class="kw"><a href="../reference/getOrCreatePath.html">getOrCreatePath</a></span>(
     <span class="st">"FLOW_CSV"</span>, 
-    <span class="dt">dictionary =</span> settings$dictionary, 
+    <span class="dt">dictionary =</span> settings<span class="op">$</span>dictionary, 
     <span class="dt">FLOW_SUBDIR_CURRENT =</span> flowSubdirCurrent
   )
   
-  hydraulics &lt;-<span class="st"> </span>kwb.logger::<span class="kw">readLogger_NIVUS_PCM4_2</span>(kwb.utils::<span class="kw">safePath</span>(csv))
+  hydraulics &lt;-<span class="st"> </span>kwb.logger<span class="op">::</span><span class="kw">readLogger_NIVUS_PCM4_2</span>(kwb.utils<span class="op">::</span><span class="kw">safePath</span>(csv))
   
   renames &lt;-<span class="st"> </span><span class="kw">list</span>(
     <span class="dt">myDateTime =</span> <span class="st">"DateTime"</span>,
@@ -423,12 +423,12 @@ read_hydraulics &lt;-<span class="st"> </span>function(settings)
   
   columnNames &lt;-<span class="st"> </span><span class="kw">as.character</span>(renames)
   
-  hydraulics &lt;-<span class="st"> </span>kwb.utils::<span class="kw">selectColumns</span>(
-    kwb.utils::<span class="kw">renameColumns</span>(hydraulics, renames), 
+  hydraulics &lt;-<span class="st"> </span>kwb.utils<span class="op">::</span><span class="kw">selectColumns</span>(
+    kwb.utils<span class="op">::</span><span class="kw">renameColumns</span>(hydraulics, renames), 
     columnNames
   )
   
-  hydraulics$DateTime &lt;-<span class="st"> </span><span class="kw">as_utc</span>(hydraulics$DateTime)
+  hydraulics<span class="op">$</span>DateTime &lt;-<span class="st"> </span><span class="kw">as_utc</span>(hydraulics<span class="op">$</span>DateTime)
   
   hydraulics
   ### data frame with columns "DateTime" (POSIXct, UTC), "H",
@@ -436,7 +436,7 @@ read_hydraulics &lt;-<span class="st"> </span>function(settings)
 }
 
 <span class="co"># getCurrentFlowSubDirectory ---------------------------------------------------</span>
-getCurrentFlowSubDirectory &lt;-<span class="st"> </span>function
+getCurrentFlowSubDirectory &lt;-<span class="st"> </span><span class="cf">function</span>
 (
   flowDirectory
 )
@@ -446,20 +446,20 @@ getCurrentFlowSubDirectory &lt;-<span class="st"> </span>function
   patternSubdir &lt;-<span class="st"> "^</span><span class="ch">\\</span><span class="st">d{8}$"</span>
   unexpected &lt;-<span class="st"> </span><span class="kw">grep</span>(patternSubdir, subDirectories, <span class="dt">value=</span><span class="ot">TRUE</span>, <span class="dt">invert=</span><span class="ot">TRUE</span>)
   
-  if (!<span class="st"> </span>kwb.utils::<span class="kw">isNullOrEmpty</span>(unexpected)) {
+  <span class="cf">if</span> (<span class="op">!</span><span class="st"> </span>kwb.utils<span class="op">::</span><span class="kw">isNullOrEmpty</span>(unexpected)) {
     <span class="kw">stop</span>(
       <span class="kw">sprintf</span>(<span class="st">"There are unexpected files/folders in </span><span class="ch">\"</span><span class="st">%s</span><span class="ch">\"</span><span class="st">: %s</span><span class="ch">\n</span><span class="st">%s</span><span class="ch">\n</span><span class="st">"</span>,
-              flowDirectory, <span class="kw">paste</span>(kwb.utils::<span class="kw">hsQuoteChr</span>(unexpected)), 
+              flowDirectory, <span class="kw">paste</span>(kwb.utils<span class="op">::</span><span class="kw">hsQuoteChr</span>(unexpected)), 
               <span class="st">"Only folders of type 'YYYYMMDD' expected!"</span>)
     )
   }
   
   currentSubdir &lt;-<span class="st"> </span><span class="kw">sort</span>(<span class="kw">setdiff</span>(subDirectories, unexpected), <span class="dt">decreasing=</span><span class="ot">TRUE</span>)[<span class="dv">1</span>]
   
-  if (<span class="kw">is.na</span>(currentSubdir)) {
+  <span class="cf">if</span> (<span class="kw">is.na</span>(currentSubdir)) {
     <span class="kw">warning</span>(<span class="st">"There is no subdirectory 'YYYYMMDD' in "</span>, flowDirectory)
   }
-  else {
+  <span class="cf">else</span> {
     <span class="kw">cat</span>(<span class="st">"Most recent flow sub-directory:"</span>, currentSubdir, <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>)
   }  
   
@@ -467,14 +467,14 @@ getCurrentFlowSubDirectory &lt;-<span class="st"> </span>function
 }
 
 <span class="co"># readSamplerFile --------------------------------------------------------------</span>
-readSamplerFile &lt;-<span class="st"> </span>function 
+readSamplerFile &lt;-<span class="st"> </span><span class="cf">function</span> 
 (
   samplerFile, bottlesToConsider, <span class="dt">siteCode =</span> <span class="ot">NA</span>
 )  
 {
   <span class="kw">cat</span>(<span class="kw">sprintf</span>(<span class="st">"Reading sample data from </span><span class="ch">\"</span><span class="st">%s</span><span class="ch">\"</span><span class="st">... "</span>, <span class="kw">basename</span>(samplerFile)))
   
-  if (<span class="kw">containsNulString</span>(samplerFile)) {
+  <span class="cf">if</span> (<span class="kw">containsNulString</span>(samplerFile)) {
     <span class="kw">cat</span>(<span class="st">"skipped!</span><span class="ch">\n</span><span class="st">"</span>)
     <span class="kw">warning</span>(<span class="kw">paste</span>(
       <span class="kw">sprintf</span>(
@@ -483,12 +483,12 @@ readSamplerFile &lt;-<span class="st"> </span>function
       <span class="st">"Remove first two bytes of the file!"</span>))
     sampleDataExtended &lt;-<span class="st"> </span><span class="ot">NULL</span>
   }
-  else {    
-    sampleData &lt;-<span class="st"> </span>kwb.logger::<span class="kw">readLogger_SIGMA_SD900</span>(samplerFile)
+  <span class="cf">else</span> {    
+    sampleData &lt;-<span class="st"> </span>kwb.logger<span class="op">::</span><span class="kw">readLogger_SIGMA_SD900</span>(samplerFile)
     <span class="kw">cat</span>(<span class="st">"ok.</span><span class="ch">\n</span><span class="st">"</span>)
-    sampleSite &lt;-<span class="st"> </span><span class="kw">attr</span>(sampleData, <span class="st">"metadata"</span>)$SITE_ID
+    sampleSite &lt;-<span class="st"> </span><span class="kw">attr</span>(sampleData, <span class="st">"metadata"</span>)<span class="op">$</span>SITE_ID
     
-    if (!<span class="kw">is.na</span>(siteCode) &amp;&amp;<span class="st"> </span>sampleSite !=<span class="st"> </span>siteCode) {
+    <span class="cf">if</span> (<span class="op">!</span><span class="kw">is.na</span>(siteCode) <span class="op">&amp;&amp;</span><span class="st"> </span>sampleSite <span class="op">!=</span><span class="st"> </span>siteCode) {
       <span class="kw">stop</span>(<span class="kw">sprintf</span>(<span class="st">"The SITE_ID indicated in </span><span class="ch">\"</span><span class="st">%s</span><span class="ch">\"</span><span class="st"> is not </span><span class="ch">\"</span><span class="st">%s</span><span class="ch">\"</span><span class="st"> as expected!"</span>,
                    sampleSite, siteCode))
     }
@@ -501,19 +501,19 @@ readSamplerFile &lt;-<span class="st"> </span>function
   }
   
   <span class="co"># filter for relevant bottles</span>
-  if (!<span class="kw">is.null</span>(bottlesToConsider) &amp;<span class="st"> </span>
-<span class="st">        </span>!<span class="st"> </span><span class="kw">all</span>(<span class="kw">is.na</span>(bottlesToConsider))) {
+  <span class="cf">if</span> (<span class="op">!</span><span class="kw">is.null</span>(bottlesToConsider) <span class="op">&amp;</span><span class="st"> </span>
+<span class="st">        </span><span class="op">!</span><span class="st"> </span><span class="kw">all</span>(<span class="kw">is.na</span>(bottlesToConsider))) {
     <span class="kw">cat</span>(<span class="st">"Filtering for bottles"</span>, <span class="kw">commaCollapsed</span>(bottlesToConsider), <span class="st">"... "</span>)
-    indices &lt;-<span class="st"> </span><span class="kw">which</span>(sampleDataExtended$bottle %in%<span class="st"> </span>bottlesToConsider)
+    indices &lt;-<span class="st"> </span><span class="kw">which</span>(sampleDataExtended<span class="op">$</span>bottle <span class="op">%in%</span><span class="st"> </span>bottlesToConsider)
     sampleDataExtended &lt;-<span class="st"> </span>sampleDataExtended[indices, ]
     <span class="kw">cat</span>(<span class="st">"ok.</span><span class="ch">\n</span><span class="st">"</span>)
   }
   
-  kwb.utils::<span class="kw">renameColumns</span>(sampleDataExtended, <span class="kw">list</span>(<span class="dt">myDateTime =</span> <span class="st">"sampleTime"</span>))
+  kwb.utils<span class="op">::</span><span class="kw">renameColumns</span>(sampleDataExtended, <span class="kw">list</span>(<span class="dt">myDateTime =</span> <span class="st">"sampleTime"</span>))
 }
 
 <span class="co"># rainGaugesCorrelatedWithStation ----------------------------------------------</span>
-rainGaugesCorrelatedWithStation &lt;-<span class="st"> </span>function 
+rainGaugesCorrelatedWithStation &lt;-<span class="st"> </span><span class="cf">function</span> 
 ### selects gauges after the result of the volume correlation test
 (
   <span class="dt">station =</span> <span class="ot">NULL</span>
@@ -524,7 +524,7 @@ rainGaugesCorrelatedWithStation &lt;-<span class="st"> </span>function
     <span class="dt">NEU =</span> <span class="kw">c</span>(<span class="st">"Wit"</span>, <span class="st">"ReiI"</span>, <span class="st">"BlnIX"</span>)    
   )
   
-  if (!<span class="kw">is.null</span>(station)) {
+  <span class="cf">if</span> (<span class="op">!</span><span class="kw">is.null</span>(station)) {
     x &lt;-<span class="st"> </span>x[[station]]
   } 
   
@@ -534,22 +534,22 @@ rainGaugesCorrelatedWithStation &lt;-<span class="st"> </span>function
 }
 
 <span class="co"># processSampleEvent -----------------------------------------------------------</span>
-processSampleEvent &lt;-<span class="st"> </span>function
+processSampleEvent &lt;-<span class="st"> </span><span class="cf">function</span>
 (
   hydraulicData, 
   settings, 
   events, 
   eventsAndStat, 
-  <span class="dt">sampleEventIndex =</span> -<span class="dv">1</span>, 
+  <span class="dt">sampleEventIndex =</span> <span class="op">-</span><span class="dv">1</span>, 
   <span class="dt">to.pdf =</span> <span class="ot">TRUE</span>,
   <span class="dt">verbose =</span> <span class="ot">FALSE</span>
 ) 
 {  
-  <span class="kw">stopifnot</span>(<span class="kw">length</span>(sampleEventIndex) ==<span class="st"> </span><span class="dv">1</span>)
+  <span class="kw">stopifnot</span>(<span class="kw">length</span>(sampleEventIndex) <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)
   
   <span class="co"># Filter for sampler event by index</span>
   fileName &lt;-<span class="st"> </span><span class="kw">getByPositiveOrNegativeIndex</span>(
-    <span class="dt">elements =</span> <span class="kw">sort</span>(<span class="kw">unique</span>(events$samplerEvents$samplerFile)), 
+    <span class="dt">elements =</span> <span class="kw">sort</span>(<span class="kw">unique</span>(events<span class="op">$</span>samplerEvents<span class="op">$</span>samplerFile)), 
     <span class="dt">index =</span> sampleEventIndex
   ) 
   
@@ -558,42 +558,42 @@ processSampleEvent &lt;-<span class="st"> </span>function
     <span class="dt">fileName =</span> fileName
   )  
   
-  samplerEvent &lt;-<span class="st"> </span>sampleInformation$samplerEvents
+  samplerEvent &lt;-<span class="st"> </span>sampleInformation<span class="op">$</span>samplerEvents
   
-  if (verbose) {
+  <span class="cf">if</span> (verbose) {
     <span class="kw"><a href="../reference/printSampleInformation.html">printSampleInformation</a></span>(sampleInformation)
   }
   
-  <span class="kw"><a href="../reference/saveSampleInformation.html">saveSampleInformation</a></span>(sampleInformation, settings, <span class="dt">sampleFile=</span>samplerEvent$samplerFile)
+  <span class="kw"><a href="../reference/saveSampleInformation.html">saveSampleInformation</a></span>(sampleInformation, settings, <span class="dt">sampleFile=</span>samplerEvent<span class="op">$</span>samplerFile)
   
   <span class="co"># find "merged" event(s) containing the "sampler event"</span>
-  mergedEventNumber &lt;-<span class="st"> </span><span class="kw">indicesOfEventsContainingEvent</span>(eventsAndStat$merged, samplerEvent)
+  mergedEventNumber &lt;-<span class="st"> </span><span class="kw">indicesOfEventsContainingEvent</span>(eventsAndStat<span class="op">$</span>merged, samplerEvent)
   
-  <span class="kw">stopifnot</span>(<span class="kw">length</span>(mergedEventNumber) ==<span class="st"> </span><span class="dv">1</span>)
+  <span class="kw">stopifnot</span>(<span class="kw">length</span>(mergedEventNumber) <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)
   
-  mergedEventAndStat &lt;-<span class="st"> </span>eventsAndStat$merged[mergedEventNumber, ]
+  mergedEventAndStat &lt;-<span class="st"> </span>eventsAndStat<span class="op">$</span>merged[mergedEventNumber, ]
   
   <span class="co"># select subset of data within the sampler event</span>
   hydraulicSubset &lt;-<span class="st"> </span><span class="kw">hsGetEvent</span>(hydraulicData, <span class="dt">events =</span> mergedEventAndStat, <span class="dv">1</span>)
   
-  if (kwb.utils::<span class="kw">isNullOrEmpty</span>(hydraulicSubset)) {
+  <span class="cf">if</span> (kwb.utils<span class="op">::</span><span class="kw">isNullOrEmpty</span>(hydraulicSubset)) {
     <span class="kw">warning</span>(<span class="st">"There is no hydraulic data for this event:</span><span class="ch">\n</span><span class="st">"</span>, 
             <span class="kw"><a href="../reference/formatEvent.html">formatEvent</a></span>(mergedEventAndStat))
     <span class="kw">return</span>()
   }
   
   <span class="co"># generate a column containing the bottle number for each timestep  </span>
-  hydraulicSubset$bottle &lt;-<span class="st"> </span><span class="kw">hsEventNumber</span>(
-    hydraulicSubset$DateTime, 
-    <span class="dt">events =</span> sampleInformation$bottleEvents,
-    <span class="dt">eventNumbers=</span>sampleInformation$bottleEvents$bottle
+  hydraulicSubset<span class="op">$</span>bottle &lt;-<span class="st"> </span><span class="kw">hsEventNumber</span>(
+    hydraulicSubset<span class="op">$</span>DateTime, 
+    <span class="dt">events =</span> sampleInformation<span class="op">$</span>bottleEvents,
+    <span class="dt">eventNumbers=</span>sampleInformation<span class="op">$</span>bottleEvents<span class="op">$</span>bottle
   )
   
   <span class="co"># generate a column containing the cumulative volume</span>
-  hydraulicSubset$Vcum_m3 &lt;-<span class="st"> </span><span class="kw">cumsum</span>(hydraulicSubset$Q)*settings$tstep.fill.s/<span class="dv">1000</span>
+  hydraulicSubset<span class="op">$</span>Vcum_m3 &lt;-<span class="st"> </span><span class="kw">cumsum</span>(hydraulicSubset<span class="op">$</span>Q)<span class="op">*</span>settings<span class="op">$</span>tstep.fill.s<span class="op">/</span><span class="dv">1000</span>
   
   <span class="co"># write interpolated data to files for "quality assurance"</span>
-  eventName &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sampleLogFileToSampleName.html">sampleLogFileToSampleName</a></span>(samplerEvent$samplerFile)
+  eventName &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sampleLogFileToSampleName.html">sampleLogFileToSampleName</a></span>(samplerEvent<span class="op">$</span>samplerFile)
   
   <span class="kw"><a href="../reference/writeCsvToPathFromDictionary.html">writeCsvToPathFromDictionary</a></span>(
     <span class="dt">dataFrame =</span> hydraulicSubset, 
@@ -650,7 +650,7 @@ processSampleEvent &lt;-<span class="st"> </span>function
 <p>And here comes the script:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Read last available hydraulic data (required if station changed)</span>
 <span class="co"># "-10d" = last 10 days</span>
-hydraulicData.raw &lt;-<span class="st"> </span>kwb.base::<span class="kw">selectTimeInterval</span>(
+hydraulicData.raw &lt;-<span class="st"> </span>kwb.base<span class="op">::</span><span class="kw">selectTimeInterval</span>(
   <span class="kw">read_hydraulics</span>(settings), <span class="dt">width =</span> <span class="st">"-30d"</span>
 )
 <span class="co">#&gt; Most recent flow sub-directory: 20180601 </span>
@@ -661,7 +661,7 @@ hydraulicData.raw &lt;-<span class="st"> </span>kwb.base::<span class="kw">selec
   hydraulicData.raw, <span class="dt">key =</span> <span class="st">"HYDRAULIC_DATA_RAW"</span>, settings, 
   <span class="dt">open.directory =</span> <span class="ot">FALSE</span>
 )
-<span class="co">#&gt; Writing to '/home/hauke/R/i686-pc-linux-gnu-library/3.3/kwb.monitoring/extdata/rawdata/flows_raw.csv'... ok.</span>
+<span class="co">#&gt; Writing to '/home/hsonne/R/packages/kwb.monitoring/extdata/rawdata/flows_raw.csv'... ok.</span>
 
 <span class="co"># Show overview plots (complete and daily), optional</span>
 <span class="kw"><a href="../reference/showOverview.html">showOverview</a></span>(
@@ -683,11 +683,11 @@ hydraulicData.all &lt;-<span class="st"> </span><span class="kw"><a href="../ref
   hydraulicData.all, <span class="dt">key =</span> <span class="st">"HYDRAULIC_DATA_VAL"</span>, settings, 
   <span class="dt">open.directory =</span> <span class="ot">FALSE</span>
 )
-<span class="co">#&gt; Writing to '/home/hauke/R/i686-pc-linux-gnu-library/3.3/kwb.monitoring/extdata/rawdata/flows_val.csv'... ok.</span>
+<span class="co">#&gt; Writing to '/home/hsonne/R/packages/kwb.monitoring/extdata/rawdata/flows_val.csv'... ok.</span>
 
 hydraulicData &lt;-<span class="st"> </span><span class="kw"><a href="../reference/removeIntervals.html">removeIntervals</a></span>(
   hydraulicData.all, 
-  <span class="dt">intervals =</span> intervalsToRemove[[settings$station]]
+  <span class="dt">intervals =</span> intervalsToRemove[[settings<span class="op">$</span>station]]
 )
 
 <span class="co"># Build different kinds of events (hydraulic, sample, merged), required</span>
@@ -702,7 +702,7 @@ events &lt;-<span class="st"> </span><span class="kw"><a href="../reference/getA
 <span class="co">#&gt; Warning: There are no hydraulic events according to the defined criteria</span>
 <span class="co">#&gt; (or hydraulicData was NULL)!</span>
 <span class="co">#&gt; Warning: There are no sample files (matching "sample_\\d.csv") in:</span>
-<span class="co">#&gt;   "/home/hauke/R/i686-pc-linux-gnu-library/3.3/kwb.monitoring/extdata/rawdata/test-project/KWB/samples"</span>
+<span class="co">#&gt;   "/home/hsonne/R/packages/kwb.monitoring/extdata/rawdata/test-project/KWB/samples"</span>
 <span class="co">#&gt; Warning: There are no sampling events!</span>
 <span class="co">#&gt; Warning: No hydraulicEvents given to getMergedEvents(). Returning</span>
 <span class="co">#&gt; samplerEvents.</span>
@@ -772,23 +772,23 @@ events &lt;-<span class="st"> </span><span class="kw"><a href="../reference/getA
 <a href="#script-ii-finding-and-storing-hq-regression-models" class="anchor"></a>Script II: Finding and storing H/Q-regression models</h1>
 <p>The following script helps you to generate a regression model between water level and discharge values. Raw data are loaded into <code>hydraulicData.raw</code>. Data of time intervals that have been assessed as “invalid” (defined in <code>intervalsToRemove</code>, see above) are removed. The resulting timeseries of H and Q are displayed as well as a plot showing H over Q. You are provided a simple user interface to further manipulate the selection of values to be used to calculate a regression model.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Find H-Q regression models ---------------------------------------------------</span>
-if (<span class="ot">FALSE</span>) 
+<span class="cf">if</span> (<span class="ot">FALSE</span>) 
 { 
   <span class="co"># Read last available hydraulic data (required if station changed)</span>
   <span class="co"># "-10d" = last 10 days</span>
-  hydraulicData.raw &lt;-<span class="st"> </span>kwb.base::<span class="kw">selectTimeInterval</span>(<span class="kw">read_hydraulics</span>(settings), <span class="dt">width=</span><span class="st">"-30d"</span>)
+  hydraulicData.raw &lt;-<span class="st"> </span>kwb.base<span class="op">::</span><span class="kw">selectTimeInterval</span>(<span class="kw">read_hydraulics</span>(settings), <span class="dt">width=</span><span class="st">"-30d"</span>)
   
   <span class="co">#Remove bad Intervals</span>
   hydraulicData &lt;-<span class="st"> </span><span class="kw"><a href="../reference/removeIntervals.html">removeIntervals</a></span>(
     hydraulicData.raw, 
-    <span class="dt">intervals =</span> intervalsToRemove[[settings$station]]
+    <span class="dt">intervals =</span> intervalsToRemove[[settings<span class="op">$</span>station]]
   )
   
   <span class="co"># run "regression finder" with a subset of the raw data</span>
-  <span class="kw"><a href="../reference/selectIntervalsForCorrelation.html">selectIntervalsForCorrelation</a></span>(kwb.base::<span class="kw">selectTimeInterval</span>(hydraulicData, <span class="dt">width=</span><span class="st">"-30d"</span>), settings)
+  <span class="kw"><a href="../reference/selectIntervalsForCorrelation.html">selectIntervalsForCorrelation</a></span>(kwb.base<span class="op">::</span><span class="kw">selectTimeInterval</span>(hydraulicData, <span class="dt">width=</span><span class="st">"-30d"</span>), settings)
   
   <span class="co"># the model last applied is now available in the variable "regresssionState"</span>
-  <span class="kw"><a href="../reference/saveRegressionModel.html">saveRegressionModel</a></span>(regressionState$model, settings)
+  <span class="kw"><a href="../reference/saveRegressionModel.html">saveRegressionModel</a></span>(regressionState<span class="op">$</span>model, settings)
 }</code></pre></div>
 </div>
   </div>

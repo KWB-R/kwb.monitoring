@@ -7,12 +7,11 @@
 validateAndFillHydraulicData(hydraulicData,
   tstep.fill.s = selectElements(settings, "tstep.fill.s"),
   replaceMissingQMethod = selectElements(settings, "replaceMissingQMethod"),
-  regressionModels = selectElements(selectElements(selectElements(settings,
-  "regression"), "models"), selectElements(settings, "station")),
-  regressionUsage = selectElements(selectElements(selectElements(settings,
-  "regression"), "usage"), selectElements(settings, "station")),
-  hydraulicEvents = NULL, additionalColumns = NULL,
-  modelDir = kwb.utils::resolve("REGRESSION_DIR", dict =
+  regressionModels = selectElements(selectElements(settings, "regression"),
+  "models")[[selectElements(settings, "station")]],
+  regressionUsage = selectElements(selectElements(settings, "regression"),
+  "usage")[[selectElements(settings, "station")]], hydraulicEvents = NULL,
+  additionalColumns = NULL, modelDir = getOrCreatePath("REGRESSION_DIR",
   selectElements(settings, "dictionary")), settings = NULL)
 }
 \arguments{
