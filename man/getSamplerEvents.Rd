@@ -4,12 +4,14 @@
 \alias{getSamplerEvents}
 \title{Get Sampler Events}
 \usage{
-getSamplerEvents(settings, FUN.readSamplerFile)
+getSamplerEvents(settings, FUN.readSamplerFile, warn = TRUE)
 }
 \arguments{
 \item{settings}{passed to \code{\link{getSampleInformation}}}
 
 \item{FUN.readSamplerFile}{passed to \code{\link{getSampleInformation}}}
+
+\item{warn}{passed to \code{\link{availableAutoSamplerFiles}}}
 }
 \description{
 Get sample event information from all available auto sampler files

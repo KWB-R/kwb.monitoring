@@ -4,8 +4,8 @@
 \alias{availableAutoSamplerFiles}
 \title{Available "sample_log"-Files}
 \usage{
-availableAutoSamplerFiles(sampleDirectory = kwb.utils::resolve("SAMPLE_DIR",
-  dictionary), pattern = kwb.utils::resolve("SAMPLE_CSV_PATTERN", dictionary),
+availableAutoSamplerFiles(sampleDirectory = getOrCreatePath("SAMPLE_DIR",
+  dictionary), pattern = do_resolve("SAMPLE_CSV_PATTERN", dictionary),
   dictionary = NULL, warn = TRUE)
 }
 \arguments{
