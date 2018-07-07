@@ -3,7 +3,8 @@ Version: 0.2.0
 Title: Functions Used Within Different Kwb Monitoring Projects
 Description: Functions used within different KWB projects dealing with 
     monitoring data.
-Authors@R: c(person("Hauke", "Sonnenberg", , "hauke.sonnenberg@kompetenz-wasser.de", role = c("aut", "cre")),
+Authors@R: c(person("Hauke", "Sonnenberg", , "hauke.sonnenberg@kompetenz-wasser.de", 
+             role = c("aut", "cre"), comment = c(ORCID = "0000-0001-9134-2871")),
              person("Kompetenzzentrum Wasser Berlin gGmbH", role = c("cph")))
 Imports: gplots, kwb.base, kwb.datetime, kwb.event, kwb.plot, kwb.utils, 
     lattice, lubridate, manipulate
