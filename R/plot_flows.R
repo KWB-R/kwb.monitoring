@@ -46,7 +46,7 @@
 # plot_Q_columns ---------------------------------------------------------------
 plot_Q_columns <-function(
   hydraulicData, main = "Station?", xlim = NULL, ylim = NULL, 
-  innerMargins = .defaultInnerMargins(), q.threshold = 0, 
+  innerMargins = default_inner_margins(), q.threshold = 0, 
   time.dependent.thresholds = NULL, interpolate = TRUE
 )
 {
@@ -86,14 +86,14 @@ plot_Q_columns <-function(
   
   graphics::abline(h = q.threshold, lty = threshold_line_type)
   
-  .drawAdditionalThresholdsIfApplicable(time.dependent.thresholds)
+  draw_thresholds_if_applicable(time.dependent.thresholds)
   
   if ("Q.pred" %in% names(hydraulicData)) {
     
     kwb.plot::plot_variable(hydraulicData, "Q.pred", add = TRUE, col = "red")
   }
   
-  legend_args <- c(.defaultLegendArguments(), list(
+  legend_args <- c(default_legend_arguments(), list(
     legend = c("raw", "H > threshold", "interpolated", "predicted from H"),
     col = c("blue", "black", "green", "red"), 
     pch = c(

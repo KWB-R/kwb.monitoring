@@ -75,7 +75,7 @@ plot_hydraulic_event <- function(
     innerMargins = innerMargins.HQ
   ) 
   
-  .drawLimits(v = xlim_event, col = "red")
+  draw_limits(v = xlim_event, col = "red")
   
   if (is.null(rainData)) {
     
@@ -91,7 +91,7 @@ plot_hydraulic_event <- function(
     innerMargins = innerMargins.HQ # innerMargins
   )  
   
-  .drawLimits(v = xlim_event, col = "red")  
+  draw_limits(v = xlim_event, col = "red")  
   
   .textplot_eventInfo(settings = settings, eventAndStat = eventAndStat)
 }

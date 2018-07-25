@@ -122,7 +122,7 @@ plotSampleInformation <- function(
 #'   e.g. "bottom", "[top|bottom]left", "top", "[top|bottom]right"
 #' 
 addSampleTimesToPlot <- function(
-  sampleTimes, ymax, timeFormat = .defaultDayTimeFormat(), cex.text = 0.7, 
+  sampleTimes, ymax, timeFormat = default_day_time_format(), cex.text = 0.7, 
   showArrows = FALSE, showTimes = FALSE, showBottleNumbers = FALSE, 
   legendPosition = "bottom"
 )
@@ -173,7 +173,7 @@ addSampleTimesToPlot <- function(
   
   result_colours <- .resultsToColours(sampleTimes$result)
   
-  legend_args <- c(.defaultLegendArguments(legendPosition), list(
+  legend_args <- c(default_legend_arguments(legendPosition), list(
     legend = names(result_colours), 
     col = as.character(result_colours),
     lty = 1, 

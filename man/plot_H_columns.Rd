@@ -6,7 +6,7 @@
 \usage{
 plot_H_columns(hydraulicData, h.threshold = 0,
   time.dependent.thresholds = NULL, xlim = NULL, ylim = NULL,
-  innerMargins = .defaultInnerMargins())
+  innerMargins = default_inner_margins())
 }
 \arguments{
 \item{hydraulicData}{data frame with columns \emph{DateTime}, \emph{H},
@@ -16,7 +16,7 @@ plot_H_columns(hydraulicData, h.threshold = 0,
 (default: 0)}
 
 \item{time.dependent.thresholds}{passed to 
-\code{kwb.monitoring:::.drawAdditionalThresholdsIfApplicable}}
+\code{kwb.monitoring:::draw_thresholds_if_applicable}}
 
 \item{xlim}{passed to \code{\link[kwb.plot]{plot_variable}}}
 

@@ -4,9 +4,10 @@
 \alias{addSampleTimesToPlot}
 \title{Add Sample Times to Plot}
 \usage{
-addSampleTimesToPlot(sampleTimes, ymax, timeFormat = .defaultDayTimeFormat(),
-  cex.text = 0.7, showArrows = FALSE, showTimes = FALSE,
-  showBottleNumbers = FALSE, legendPosition = "bottom")
+addSampleTimesToPlot(sampleTimes, ymax,
+  timeFormat = default_day_time_format(), cex.text = 0.7,
+  showArrows = FALSE, showTimes = FALSE, showBottleNumbers = FALSE,
+  legendPosition = "bottom")
 }
 \arguments{
 \item{sampleTimes}{data frame with columns \code{sampleTime}, \code{bottle},

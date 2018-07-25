@@ -1,23 +1,23 @@
-# .defaultDayTimeFormat --------------------------------------------------------
-.defaultDayTimeFormat <- function()
+# default_day_time_format ------------------------------------------------------
+default_day_time_format <- function()
 {
   "%d.%m %H:%M"
 }
 
-# .defaultInnerMargins ---------------------------------------------------------
-.defaultInnerMargins <- function()
+# default_inner_margins --------------------------------------------------------
+default_inner_margins <- function()
 {
   c(0.1, 0.1, 0.1, 0.2)
 }
 
-# .defaultLegendArguments ------------------------------------------------------
-.defaultLegendArguments <- function(x = "topright", horiz = FALSE)
+# default_legend_arguments -----------------------------------------------------
+default_legend_arguments <- function(x = "topright", horiz = FALSE)
 {
   list(x = x, horiz = horiz, cex = 0.7, bg = "white")
 }
 
-# .drawAdditionalThresholdsIfApplicable ----------------------------------------
-.drawAdditionalThresholdsIfApplicable <- function(
+# draw_thresholds_if_applicable ------------------------------------------------
+draw_thresholds_if_applicable <- function(
   time.dependent.thresholds, col = "red", lty = "dashed", dbg = FALSE
 )
 {
@@ -46,8 +46,8 @@
   }
 }
 
-# .drawLimits ------------------------------------------------------------------
-.drawLimits <- function(v, col = "green", lty = 2, lwd = 2, dbg = FALSE) 
+# draw_limits ------------------------------------------------------------------
+draw_limits <- function(v, col = "green", lty = 2, lwd = 2, dbg = FALSE) 
 {
   kwb.utils::printIf(dbg, v, "drawing vertical lines at")
   

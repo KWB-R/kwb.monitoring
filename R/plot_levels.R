@@ -37,14 +37,14 @@
 #' @param h.threshold H threshold at which a horizontal line is to be drawn
 #'   (default: 0)
 #' @param time.dependent.thresholds passed to 
-#'   \code{kwb.monitoring:::.drawAdditionalThresholdsIfApplicable}
+#'   \code{kwb.monitoring:::draw_thresholds_if_applicable}
 #' @param xlim passed to \code{\link[kwb.plot]{plot_variable}}
 #' @param ylim passed to \code{\link[kwb.plot]{plot_variable}}
 #' @param innerMargins passed to \code{\link[kwb.plot]{plot_variable}}
 #' 
 plot_H_columns <- function(
   hydraulicData, h.threshold = 0, time.dependent.thresholds = NULL,  
-  xlim = NULL, ylim = NULL, innerMargins = .defaultInnerMargins()
+  xlim = NULL, ylim = NULL, innerMargins = default_inner_margins()
 )
 {
   kwb.plot::plot_variable(
@@ -60,10 +60,10 @@ plot_H_columns <- function(
   
   graphics::abline(h = h.threshold, lty = threshold_line_type)
   
-  .drawAdditionalThresholdsIfApplicable(time.dependent.thresholds)
+  draw_thresholds_if_applicable(time.dependent.thresholds)
   
   legend.args <- c(
-    .defaultLegendArguments(), 
+    default_legend_arguments(), 
     list(
       legend = c(sprintf("H threshold = %0.2f m", h.threshold), "interpolated"),
       lty = c(threshold_line_type, NA),

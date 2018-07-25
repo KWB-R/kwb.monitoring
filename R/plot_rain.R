@@ -47,7 +47,7 @@
       
       if (! is.null(xlims_rain[[gauge]]) ) {
         
-        .drawLimits(v = xlims_rain[[gauge]])
+        draw_limits(v = xlims_rain[[gauge]])
       }
     }
     
