@@ -15,56 +15,68 @@ plotTotalDischargeVersusRainProperties <- function(
 {
   ylab <- c(sum = "Rain height in mm", mean = "mean", max = "max")
   
-  rain.columns <- paste(stations, statistics, sep = ".")
-  rain.columns <- intersect(rain.columns, names(hydraulicEvents))
+  rain_columns <- paste(stations, statistics, sep = ".")
+  
+  rain_columns <- intersect(rain_columns, names(hydraulicEvents))
     
-  if (isNullOrEmpty(rain.columns)) {
+  if (isNullOrEmpty(rain_columns)) {
+    
     warning("There are no rain properties at all in hydraulicEvents!")
+    
     return(NULL)
   }
   
-  stat.columns <- c("V.m3", rain.columns)
+  stat_columns <- c("V.m3", rain_columns)
   
-  xlim = c(0, max(hydraulicEvents[, stat.columns[1]]))
-  ylim = c(0, max(hydraulicEvents[, stat.columns[-1]], na.rm = TRUE))
+  xlim <- c(0, max(hydraulicEvents[, stat_columns[1]]))
+  
+  ylim <- c(0, max(hydraulicEvents[, stat_columns[-1]], na.rm = TRUE))
   
   if (to.pdf) {
     
-    pdfFile <- file.path(
+    pdf_file <- file.path(
       kwb.utils::resolve("OUTPUT_DIR", dict = settings$dictionary),
-      paste("Rain_Event_Volume_Correlation_", settings$station, ".pdf", sep = "")
+      sprintf("Rain_Event_Volume_Correlation_%s.pdf", settings$station)
     )
     
-    kwb.utils::preparePdf(pdfFile)
-    on.exit(kwb.utils::finishAndShowPdfIf(TRUE, pdfFile))
+    kwb.utils::preparePdf(pdf_file)
+    
+    on.exit(kwb.utils::finishAndShowPdfIf(TRUE, pdf_file))
   }
 
-  graphics::plot(NA, NA, xlim = xlim, ylim = ylim, xlab = "Runoff volume in L", 
-       ylab = ylab[statistics], las = 1, main = main)
+  graphics::plot(
+    NA, NA, xlim = xlim, ylim = ylim, xlab = "Runoff volume in L", 
+    ylab = ylab[statistics], las = 1, main = main
+  )
   
-  plotColours <- grDevices::rainbow(length(stat.columns) - 1)
-  names(plotColours) <- stat.columns[-1]
-  r.squared <- numeric()
+  plot_colours <- grDevices::rainbow(length(stat_columns) - 1)
   
-  for (sum.column in stat.columns[-1]) {
-    x <- hydraulicEvents[, stat.columns[1]]
+  names(plot_colours) <- stat_columns[-1]
+  
+  r_squared <- numeric()
+  
+  for (sum.column in stat_columns[-1]) {
+    
+    x <- hydraulicEvents[, stat_columns[1]]
+    
     y <- hydraulicEvents[, sum.column]
-    col <- plotColours[sum.column]
+    
+    col <- plot_colours[sum.column]
     
     graphics::points(x = x, y = y, col = col)
     
-    linearModel <- stats::lm("y~x", data = data.frame(x = x, y = y))
-    r.squared <- c(r.squared, summary(linearModel)$r.squared)
+    model <- stats::lm("y~x", data = data.frame(x = x, y = y))
     
-    graphics::abline(coef = linearModel$coefficients, col = col)
+    r_squared <- c(r_squared, summary(model)$r.squared)
+    
+    graphics::abline(coef = model$coefficients, col = col)
   }
   
-  graphics::legend(
-    "bottomright", legend = sprintf(
-      "%s (R sq. = %0.2f)", sub("\\.sum", "", stat.columns[-1]), r.squared
-    ),
-    col = plotColours, pch = 1
+  legend <- sprintf(
+    "%s (R sq. = %0.2f)", sub("\\.sum", "", stat_columns[-1]), r_squared
   )
+  
+  graphics::legend("bottomright", legend = legend, col = plot_colours, pch = 1)
 }
 
 # plot_hydraulic_events --------------------------------------------------------
@@ -98,17 +110,17 @@ plot_hydraulic_events <- function
 )
 {
   if (is.null(eventsAndStat)) {
+    
     warning("There are no events to plot.")
+    
     return()
   }
-  
-  n <- nrow(eventsAndStat)
   
   if (to.pdf) {
     
     timerange <- range(hydraulicData$DateTime)
     
-    PDF <- getOrCreatePath(
+    pdf_file <- getOrCreatePath(
       "OVERVIEW_EVENTS_PDF", 
       dictionary = settings$dictionary,
       create.dir = TRUE,
@@ -116,17 +128,17 @@ plot_hydraulic_events <- function
       HYDRAULIC_END = dateToDateStringInPath(timerange[2])
     )
     
-    kwb.utils::preparePdf(PDF, landscape = landscape)
+    kwb.utils::preparePdf(pdf_file, landscape = landscape)
   }
   
-  on.exit(kwb.utils::finishAndShowPdfIf(to.pdf, PDF = PDF, dbg = FALSE))
+  on.exit(kwb.utils::finishAndShowPdfIf(to.pdf, PDF = pdf_file, dbg = FALSE))
     
   if (plot.event.overview) {
     
     plotEventDistribution(eventsAndStat = eventsAndStat, settings = settings)
   }
   
-  for (i in 1:n) {
+  for (i in seq_len(nrow(eventsAndStat))) {
     
     cat("Event #", i, "\n")
     
@@ -152,33 +164,32 @@ plot_hydraulic_events <- function
 #' 
 plotEventDistribution <- function(eventsAndStat, settings)
 {
-  infoGeneral <- formatSettings(
+  info_general <- formatSettings(
     settings = settings, 
     settingNames = c("evtSepTime", "durationThreshold")
   )
 
-  graphicalParameters <- graphics::par(no.readonly = TRUE)
+  old_pars <- graphics::par(no.readonly = TRUE)
   
-  graphics::layout(matrix(c(1,2), nrow = 2), heights = c(1.1,4)) # was: c(1.0,4)
-  #graphics::layout(matrix(c(1,2), nrow = 1), heights = c(1.1,4)) # was: c(1.0,4)
+  graphics::layout(matrix(c(1,2), nrow = 2), heights = c(1.1, 4))
   
   kwb.plot::setMargins(top = 3, bottom = 0)
   
-  gplots::textplot(infoGeneral, valign = "top", cex = 1)
+  gplots::textplot(info_general, valign = "top", cex = 1)
   
   main <- paste("Station:", settings$station)          
 
   graphics::title(main)
   
-  statisticsDataFrame <- formatEventStatisticsTable(
+  statistics <- formatEventStatisticsTable(
     kwb.event::hsEventsToUnit(eventsAndStat, "h"),
     precisionLevel = settings$precisionLevel
   )
   
-  gplots::textplot(statisticsDataFrame, show.rownames = FALSE)
+  gplots::textplot(statistics, show.rownames = FALSE)
   
   # Reset graphical parameters
-  graphics::par(graphicalParameters)
+  graphics::par(old_pars)
 
   # plot volume versus duration for hydraulic events
   kwb.event::plotEventProperty1VersusEventProperty2(
@@ -229,29 +240,30 @@ plot_hydraulic_event <- function(
 )
 {
   # Set defaults
-  if (is.null(rainData)) {
-    gauges <- NULL
-  }
-  else if (is.null(gauges)) {
-    gauges <- rainGaugesNearStation(settings$station)[1:3]
+  gauges <- if (is.null(rainData)) {
+    NULL
+  } else if (is.null(gauges)) {
+    rainGaugesNearStation(settings$station)[1:3]
   }
   
-  currentGraphicalParameters <- graphics::par(no.readonly = TRUE) 
-  on.exit(graphics::par(currentGraphicalParameters), add = TRUE)  
+  old_pars <- graphics::par(no.readonly = TRUE) 
+  
+  on.exit(graphics::par(old_pars), add = TRUE)  
   
   .setPageLayout(numberOfGauges = length(gauges))
   
   kwb.plot::setMargins(top = 2, bottom = 3)
   
-  #Mark: outer margins are extended to see title (Stations name)
+  # Mark: outer margins are extended to see title (Stations name)
   graphics::par(oma = c(1, 1, 1, 1))
   
   kwb.utils::printIf(dbg, eventAndStat)    
 
-  xlim.event <- kwb.event::eventToXLim(eventAndStat)
-  xlim <- kwb.utils::extendLimits(xlim.event, 1, 1)    
+  xlim_event <- kwb.event::eventToXLim(eventAndStat)
+  
+  xlim <- kwb.utils::extendLimits(xlim_event, 1, 1)    
 
-  if (!is.null(rainData)) {
+  if (! is.null(rainData)) {
     
     .plotRainData(
       rainData = rainData, 
@@ -274,9 +286,10 @@ plot_hydraulic_event <- function(
     innerMargins = innerMargins.HQ
   ) 
   
-  .drawLimits(v = xlim.event, col = "red")
+  .drawLimits(v = xlim_event, col = "red")
   
   if (is.null(rainData)) {
+    
     graphics::title(paste("Station:", settings$station))
   }
   
@@ -289,7 +302,7 @@ plot_hydraulic_event <- function(
     innerMargins = innerMargins.HQ # innerMargins
   )  
   
-  .drawLimits(v = xlim.event, col = "red")  
+  .drawLimits(v = xlim_event, col = "red")  
   
   .textplot_eventInfo(settings = settings, eventAndStat = eventAndStat)
 }
@@ -308,7 +321,7 @@ plot_hydraulic_event <- function(
   rainData, gauges, xlim, innerMargins, eventAndStat = NULL
 )
 {
-  gaugeIndices <- seq_len(length(gauges))
+  gauge_indices <- seq_along(gauges)
   
   timestamps <- rainData$DateTime
   
@@ -318,15 +331,13 @@ plot_hydraulic_event <- function(
     
     # get y limits over all gauges to be plotted
     ylim <- .getYLim(
-      rainData, gauges, gaugeIndices, 
+      rainData, gauges, gauge_indices, 
       in.limits = kwb.plot::inLimits(timestamps, xlim)
     )
     
-    if (isNullOrEmpty(eventAndStat)) {
-      xlims.rain <- NULL
-    }
-    else {
-      xlims.rain <- .getRainXLims(eventAndStat, gauges)      
+    xlims_rain <- if (! isNullOrEmpty(eventAndStat)) {
+      
+      .getRainXLims(eventAndStat, gauges)      
     }
     
     # plot rain for all gauges
@@ -343,13 +354,16 @@ plot_hydraulic_event <- function(
         innerMargins = innerMargins
       )
       
-      if (!is.null(xlims.rain[[gauge]]) ) {
-        .drawLimits(v = xlims.rain[[gauge]])
+      if (! is.null(xlims_rain[[gauge]]) ) {
+        
+        .drawLimits(v = xlims_rain[[gauge]])
       }
-    }  
-  }
-  else {
+    }
+    
+  } else {
+    
     for (gauge in gauges) {
+      
       gplots::textplot("No rain data available.", cex = 1)
     }      
   }
@@ -359,32 +373,32 @@ plot_hydraulic_event <- function(
 
 .getRainXLims <- function(hydraulicEvents, gauges)
 {
-  xlims.rain <- list()
+  xlims_rain <- list()
   
   for (gauge in gauges) {
     
-    columnNames <- paste(gauge, c("tBeg", "tEnd"), "merged", sep = ".")
+    columns <- paste(gauge, c("tBeg", "tEnd"), "merged", sep = ".")
 
-    if (all(columnNames %in% names(hydraulicEvents))) {
+    if (all(columns %in% names(hydraulicEvents))) {
       
-      xlims.rain[[gauge]] <- toUTC(
-        c(hydraulicEvents[, columnNames[1]], 
-          hydraulicEvents[, columnNames[2]])
-      )      
+      xlims_rain[[gauge]] <- toUTC(
+        c(hydraulicEvents[, columns[1]], 
+          hydraulicEvents[, columns[2]])
+      )     
     }
   }
   
-  xlims.rain
+  xlims_rain
 }
 
 # .getXLim ---------------------------------------------------------------------
 
 .getXLim <- function(xlim, timestamps, shift.to.begin = 0)
 {
-  t.begin <- timestamps - shift.to.begin
-  t.end <- t.begin + kwb.datetime::getTimestepInSeconds(timestamps, default = 60)
+  t_beg <- timestamps - shift.to.begin
+  t_end <- t_beg + kwb.datetime::getTimestepInSeconds(timestamps, default = 60)
   
-  kwb.plot::appropriateLimits(x = c(t.begin, t.end), limits = xlim)  
+  kwb.plot::appropriateLimits(x = c(t_beg, t_end), limits = xlim)  
 }
 
 # .getYLim ---------------------------------------------------------------------
@@ -394,6 +408,7 @@ plot_hydraulic_event <- function(
   ymax <- 0
   
   for (i in gaugeIndices) {
+    
     ymax <- max(ymax, .getRainLimits(rainData[[gauges[i]]], in.limits)[2])
   }
   
@@ -413,17 +428,12 @@ plot_hydraulic_event <- function(
 
 .setPageLayout <- function(numberOfGauges, relativeRainPlotHeight = 0.7)
 {
-  numberOfRows <- numberOfGauges + 2
+  n_rows <- numberOfGauges + 2
   
-  matrixValues <- c(
-    rep(seq_len(numberOfRows), 2),
-    rep(numberOfRows + 1, numberOfRows)
-  )
-  
-  layoutMatrix <- matrix(matrixValues, nrow = numberOfRows, byrow = FALSE)
+  matrix_values <- c(rep(seq_len(n_rows), 2), rep(n_rows + 1, n_rows))
   
   graphics::layout(
-    layoutMatrix, 
+    matrix(matrix_values, nrow = n_rows, byrow = FALSE), 
     heights = c(rep(relativeRainPlotHeight, numberOfGauges), 1, 1)
   )
 }
@@ -432,11 +442,8 @@ plot_hydraulic_event <- function(
 
 .drawLimits <- function(v, col = "green", lty = 2, lwd = 2, dbg = FALSE) 
 {
-  if (dbg) {
-    cat("drawing vertical lines at:\n")
-    print(v)    
-  }
-  
+  kwb.utils::printIf(dbg, v, "drawing vertical lines at")
+
   graphics::abline(v = v, col = col, lty = lty, lwd = lwd)
 }
 
@@ -444,10 +451,7 @@ plot_hydraulic_event <- function(
 
 .textplot_eventInfo <- function(settings, eventAndStat)
 {
-  infoGeneral <- formatSettings(
-    settings = settings, 
-    settingNames = c("evtSepTime", "durationThreshold", "replaceMissingQMethod")
-  )
+  elements <- c("evtSepTime", "durationThreshold", "replaceMissingQMethod")
   
   infotext <- paste(
     formatEvent(
@@ -462,7 +466,7 @@ plot_hydraulic_event <- function(
     ), 
     "",
     "", 
-    infoGeneral,
+    formatSettings(settings = settings, settingNames = elements),
     sep = "\n"
   )
   
@@ -493,27 +497,29 @@ plot_sampled_event <- function(
   volumeCompositeSample = NULL, to.pdf = FALSE, interpolate = TRUE, ...
 )
 {
-  samplerFile <- unique(sampleInformation$samplerEvents$samplerFile)
-  stopifnot(length(samplerFile) == 1)
+  file <- unique(sampleInformation$samplerEvents$samplerFile)
+  
+  stopifnot(length(file) == 1)
   
   if (to.pdf) {  
     
-    eventName <- sampleLogFileToSampleName(samplerFile)
+    event_name <- sampleLogFileToSampleName(file)
     
-    PDF <- getOrCreatePath(
+    pdf_file <- getOrCreatePath(
       "SAMPLED_EVENT_PDF_COMPOSITE", 
       dictionary = settings$dictionary, 
       create.dir = TRUE,
-      SAMPLED_EVENT_NAME = eventName
+      SAMPLED_EVENT_NAME = event_name
     )
     
-    PDF <- kwb.utils::preparePdf(PDF, landscape = TRUE)
+    pdf_file <- kwb.utils::preparePdf(pdf_file, landscape = TRUE)
   }
   
-  currentGraphicalParameters <- graphics::par(no.readonly = TRUE) 
+  old_pars <- graphics::par(no.readonly = TRUE) 
   
-  on.exit(kwb.utils::finishAndShowPdfIf(to.pdf, PDF = PDF, dbg = FALSE))
-  on.exit(graphics::par(currentGraphicalParameters), add = TRUE)
+  on.exit(kwb.utils::finishAndShowPdfIf(to.pdf, PDF = pdf_file, dbg = FALSE))
+  
+  on.exit(graphics::par(old_pars), add = TRUE)
   
   graphics::layout(matrix(nrow = 3, byrow = TRUE, c(
     1, 1 ,3,
@@ -522,7 +528,7 @@ plot_sampled_event <- function(
   )))
   
   main <- sprintf(
-    "Station: %s, auto-sampler file: %s", settings$station, samplerFile
+    "Station: %s, auto-sampler file: %s", settings$station, file
   )
   
   # plot into layout area 1
@@ -557,44 +563,42 @@ plot_sampled_event <- function(
   )
   
   # plot into layout area 5
-  V.event <- mergedEventAndStat$V.m3
-  V.sampled <- sum(volumeCompositeSample$V.used, na.rm=TRUE)
+  V_event <- mergedEventAndStat$V.m3
+  
+  V_sampled <- sum(volumeCompositeSample$V.used, na.rm=TRUE)
 
-  #cat("mergedEventAndStat:\n")
-  #print(mergedEventAndStat)
+  #kwb.utils::printIf(TRUE, mergedEventAndStat)
+
+  bottles_to_discard <- settings$bottlesToDiscard
   
-  bottlesToDiscard <- settings$bottlesToDiscard
-  bottlesToConsider <- settings$bottlesToConsider
+  bottles_to_consider <- settings$bottlesToConsider
   
-  if (!all(is.na(bottlesToConsider))) {
-    bottlesToDiscard <- intersect(bottlesToDiscard, bottlesToConsider)
+  if (! all(is.na(bottles_to_consider))) {
+    
+    bottles_to_discard <- intersect(bottles_to_discard, bottles_to_consider)
   }
   
   infoText <- paste(
     formatBottleEnumeration(
-      "Bottles considered", bottlesToConsider, na.text = "all"
+      "Bottles considered", bottles_to_consider, na.text = "all"
     ),
-    
     formatBottleEnumeration(
-      "Bottles discarded", bottlesToDiscard, na.text = "none"
+      "Bottles discarded", bottles_to_discard, na.text = "none"
     ),
-    
     "",
-    
     formatEventRelation(
-      mergedEventAndStat, V.event, V.sampled, settings$precisionLevel
+      mergedEventAndStat, V_event, V_sampled, settings$precisionLevel
     ),
-    
     "",
-    
     formatSettings(settings, settingNames = c(
       "evtSepTime", "replaceMissingQMethod", "sampleEventMethod"
     )),
-    
     sep = "\n"
   )
   
-  gplots::textplot(infoText, valign = "top", halign = "left", mar = c(0, 0, 0, 0))
+  gplots::textplot(
+    infoText, valign = "top", halign = "left", mar = c(0, 0, 0, 0)
+  )
 }
 
 # .partialPlot_Q ---------------------------------------------------------------
@@ -606,30 +610,27 @@ plot_sampled_event <- function(
 {
   if (! is.null(sampleInformation)) {
     
-    samplerEvent <- sampleInformation$samplerEvents
+    sampler_event <- sampleInformation$samplerEvents
     
-    stopifnot(nrow(samplerEvent) == 1)
+    stopifnot(nrow(sampler_event) == 1)
     
     if (is.null(xlim)) {
       
-      #xlim <- kwb.utils::preparePdf(samplerEvent)
-      xlim <- kwb.event::eventToXLim(samplerEvent)
+      xlim <- kwb.event::eventToXLim(sampler_event)
     }    
   }
 
-  eventSettings <- settings$event[[settings$station]]
+  event_settings <- settings$event[[settings$station]]
   
-  time.dependent.thresholds <- if (! is.null(eventSettings)) {
+  thresholds <- if (! is.null(event_settings)) {
     
-    kwb.utils::renameColumns(eventSettings, list(
-      Qthreshold = "threshold"
-    ))
-  } # else NULL (implicitly)
+    kwb.utils::renameColumns(event_settings, list(Qthreshold = "threshold"))
+  }
 
   plot_Q_columns(
     hydraulicData, xlim = xlim, ylim = ylim, main = main, 
     q.threshold = get_Q_threshold(settings), 
-    time.dependent.thresholds = time.dependent.thresholds, 
+    time.dependent.thresholds = thresholds, 
     interpolate = interpolate, ...
   )
   
@@ -655,6 +656,7 @@ plot_sampled_event <- function(
   densities <- rep(0, length(bottleNumbers))
   
   if (! all(is.na(bottlesToDiscard))) {
+    
     densities[which(bottleNumbers %in% bottlesToDiscard)] <- density
   }
   
@@ -669,18 +671,18 @@ plot_Q_columns <-function(
   time.dependent.thresholds = NULL, interpolate = TRUE
 )
 {
-  # find y limits over all y-columns
-  q.columns <- intersect(
-    names(hydraulicData), c("Q.raw", "Q.interpol", "Q.pred")
-  )
+  # Find y limits over all y-columns
+  q_columns <- c("Q.raw", "Q.interpol", "Q.pred")
+  
+  q_columns <- intersect(names(hydraulicData), q_columns)
   
   xlim <- kwb.plot::appropriateLimits(hydraulicData$DateTime, xlim)
   
-  in.xlim <- kwb.utils::inRange(hydraulicData$DateTime, xlim[1], xlim[2])
+  in_xlim <- kwb.utils::inRange(hydraulicData$DateTime, xlim[1], xlim[2])
   
-  ylim <- kwb.plot::appropriateLimits(hydraulicData[in.xlim, q.columns], ylim)
+  ylim <- kwb.plot::appropriateLimits(hydraulicData[in_xlim, q_columns], ylim)
   
-  if(interpolate) {
+  if (interpolate) {
     
     kwb.plot::plot_variable(
       hydraulicData, "Q.raw", xlim = xlim, ylim = ylim, 
@@ -692,6 +694,7 @@ plot_Q_columns <-function(
     kwb.plot::plot_variable(
       hydraulicData, "Q.interpol", add = TRUE, col = "green"
     )
+    
   } else {
     
     kwb.plot::plot_variable(
@@ -700,8 +703,9 @@ plot_Q_columns <-function(
     )
   }
   
-  threshold.lty <- 2
-  graphics::abline(h = q.threshold, lty = threshold.lty)
+  threshold_line_type <- 2
+  
+  graphics::abline(h = q.threshold, lty = threshold_line_type)
   
   .drawAdditionalThresholdsIfApplicable(time.dependent.thresholds)
   
@@ -709,8 +713,8 @@ plot_Q_columns <-function(
     
     kwb.plot::plot_variable(hydraulicData, "Q.pred", add = TRUE, col = "red")
   }
-  
-  do.call(graphics::legend, args = c(.defaultLegendArguments(), list(
+
+  legend_args <- c(.defaultLegendArguments(), list(
     legend = c("raw", "H > threshold", "interpolated", "predicted from H"),
     col = c("blue", "black", "green", "red"), 
     pch = c(
@@ -719,39 +723,38 @@ plot_Q_columns <-function(
       kwb.plot::.defaultPlotParameter("pch", "Q.interpol"),
       kwb.plot::.defaultPlotParameter("pch", "Q.pred")
     )
-  )))
+  ))
+  
+  do.call(graphics::legend, args = legend_args)
 }
 
 # .drawAdditionalThresholdsIfApplicable ----------------------------------------
 
-.drawAdditionalThresholdsIfApplicable <- function
-(
-  time.dependent.thresholds,
-  col = "red",
-  lty = "dashed",
-  dbg = FALSE
+.drawAdditionalThresholdsIfApplicable <- function(
+  time.dependent.thresholds, col = "red", lty = "dashed", dbg = FALSE
 )
 {
-  if (!is.null(time.dependent.thresholds)) {
+  if (! is.null(time.dependent.thresholds)) {
     
-    if (dbg) {
-      cat("time.dependent.thresholds:\n")
-      print(time.dependent.thresholds)      
-    }
-    
+    kwb.utils::printIf(dbg, time.dependent.thresholds)
+
     x0 <- time.dependent.thresholds$tBeg
+    
     x1 <- time.dependent.thresholds$tEnd
+    
     threshold <- time.dependent.thresholds$threshold
     
-    if (dbg) {
-      cat("Plotting segments at (x0, x1, y):", format(x0), format(x1), threshold, "\n")  
-    }
-    
+    kwb.utils::catIf(
+      dbg, "Plotting segments at (x0, x1, y):", format(x0), format(x1), 
+      threshold, "\n"
+    )
+
     graphics::segments(
       x0 = x0, y0 = threshold, x1 = x1, y1 = threshold, col = col, lty = lty
     )
-  } 
-  else {
+    
+  } else {
+    
     cat("No special thresholds to plot\n")
   }
 }
@@ -776,7 +779,7 @@ plot_H_columns <- function(
 )
 {
   kwb.plot::plot_variable(
-    hydraulicData, "H", type="p", xlim = xlim, ylim = ylim, 
+    hydraulicData, "H", type = "p", xlim = xlim, ylim = ylim, 
     innerMargins = innerMargins
   )
   
@@ -784,8 +787,9 @@ plot_H_columns <- function(
     hydraulicData, "H.interpol", add = TRUE, col = "green"
   )
   
-  threshold.lty <- 2  
-  graphics::abline(h = h.threshold, lty = threshold.lty)
+  threshold_line_type <- 2
+  
+  graphics::abline(h = h.threshold, lty = threshold_line_type)
 
   .drawAdditionalThresholdsIfApplicable(time.dependent.thresholds)
   
@@ -793,7 +797,7 @@ plot_H_columns <- function(
     .defaultLegendArguments(), 
     list(
       legend = c(sprintf("H threshold = %0.2f m", h.threshold), "interpolated"),
-      lty = c(threshold.lty, NA),
+      lty = c(threshold_line_type, NA),
       pch = c(NA, kwb.plot::.defaultPlotParameter("pch", "H.interpol")),
       col = c("black", "green")
     )
@@ -848,25 +852,24 @@ plotSampleInformation <- function(
   plotSamplingPoints = plotSampleIntervals
 )
 { 
-  if (is.null(maxSamplesOk)) {
-    maxSamplesOk <- 4  
-  }
-  
+  maxSamplesOk <- kwb.utils::defaultIfNULL(maxSamplesOk, 4)
+
   limits <- kwb.plot::userCoordinatesToLimits(
     kwb.plot::getPlotRegionSizeInUserCoords()
   )
   
   top <- limits$ylim[2]
   
-  # plot interval limits of bottles
+  # Plot interval limits of bottles
   ymin <- 0.1 * top
   ymax <- 0.9 * top
   
   y1 <- 0
   
   #y2 <- 0.1*top + 0.2*top*sampleInformation$bottleEvents$samplesOk
-  fractionOk <- sampleInformation$bottleEvents$samplesOk/maxSamplesOk 
-  y2 <- ymin + fractionOk * (ymax - ymin)
+  fraction_ok <- sampleInformation$bottleEvents$samplesOk / maxSamplesOk
+  
+  y2 <- ymin + fraction_ok * (ymax - ymin)
   
   kwb.event::ganttPlotEvents(
     events = sampleInformation$bottleEvents, 
@@ -883,7 +886,7 @@ plotSampleInformation <- function(
   
   if (plotSampleIntervals) {
     
-    # plot interval limits of samples
+    # Plot interval limits of samples
     kwb.event::ganttPlotEvents(
       events = sampleInformation$samplingEvents, 
       add = add,
@@ -899,7 +902,7 @@ plotSampleInformation <- function(
       lwd = 0.5
     )
     
-    # plot points indicating sample times
+    # Plot points indicating sample times
     if (plotSamplingPoints) {
       
       addSampleTimesToPlot(
@@ -941,31 +944,31 @@ addSampleTimesToPlot <- function(
 {  
   timestamps <- hsToPosix(sampleTimes$sampleTime)
   
-  arrowLength <- ymax/3
+  arrow_length <- ymax/3
   
-  resultColours <- .getResultColours(sampleTimes$result)
+  result_colours <- .getResultColours(sampleTimes$result)
   
   if (showArrows) {
     
     graphics::arrows(
       x0 = timestamps, 
-      y0 = -arrowLength, 
+      y0 = -arrow_length, 
       x1 = timestamps, 
       y1 = 0, 
-      col = resultColours, 
+      col = result_colours, 
       length = 0.1
     )
   }
   
   graphics::points(
-    timestamps, rep(0, length(timestamps)), pch = 16, col = resultColours
+    timestamps, rep(0, length(timestamps)), pch = 16, col = result_colours
   )
   
   if (showBottleNumbers) {
     
     graphics::text(
       x = timestamps, 
-      y = -arrowLength/2, 
+      y = -arrow_length/2, 
       labels = sampleTimes$bottle, 
       cex = cex.text
     )
@@ -983,51 +986,46 @@ addSampleTimesToPlot <- function(
     )
   }
   
-  resultColours <- .resultsToColours(sampleTimes$result)
+  result_colours <- .resultsToColours(sampleTimes$result)
   
-  do.call(graphics::legend, args = c(.defaultLegendArguments(legendPosition), list(
-    legend = names(resultColours), 
-    col = as.character(resultColours),
+  legend_args <- c(.defaultLegendArguments(legendPosition), list(
+    legend = names(result_colours), 
+    col = as.character(result_colours),
     lty = 1, 
     pch = 16
-  )))
+  ))
+  
+  do.call(graphics::legend, args = legend_args)
 }
 
 # .defaultDayTimeFormat --------------------------------------------------------
 
 .defaultDayTimeFormat <- function()
 {
-  return ("%d.%m %H:%M")
+  "%d.%m %H:%M"
 }
 
 # .partialPlot_H ---------------------------------------------------------------
 
 .partialPlot_H <-function(hydraulicData, settings, xlim, sampleInformation, ...)
 {
-  eventSettings <- settings$event[[settings$station]]
+  event_settings <- settings$event[[settings$station]]
   
-  if (!is.null(eventSettings)) {
+  thresholds <- if (! is.null(event_settings)) {
     
-    time.dependent.thresholds <- kwb.utils::renameColumns(eventSettings, list(
-      Hthreshold = "threshold"
-    ))
-  }
-  else {
-    time.dependent.thresholds <- NULL
+    kwb.utils::renameColumns(event_settings, list(Hthreshold = "threshold"))
   }
   
   plot_H_columns(
     hydraulicData, 
     h.threshold = get_H_threshold(settings),                  
-    time.dependent.thresholds = time.dependent.thresholds,
+    time.dependent.thresholds = thresholds,
     xlim = xlim, 
     ylim = c(0, NA),
     ...
   )  
   
-  plotRegion <- kwb.plot::getPlotRegionSizeInUserCoords()
-  
-  if (!is.null(sampleInformation)) {
+  if (! is.null(sampleInformation)) {
     
     plotSampleInformation(
       sampleInformation, add = TRUE, main = "", plotSampleIntervals = FALSE,
@@ -1052,24 +1050,25 @@ getFunctionValueOrDefault2 <- function(
 {
   prolog <- ""
   
-  if (!is.null(timestamps)) {
+  if (! is.null(timestamps)) {
+    
     prolog <- sprintf(
       "Time interval [%s ... %s]:", timestamps[1], utils::tail(timestamps, 1)
     )
   }
   
-  warningMessage <- paste(prolog, sprintf(
+  warning_text <- paste(prolog, sprintf(
     "all %s-values are NA -> taking default: %s", columnName, toString(default)
   ))
   
-  kwb.utils::getFunctionValueOrDefault(values, FUN, default, warningMessage)
+  kwb.utils::getFunctionValueOrDefault(values, FUN, default, warning_text)
 }
 
 # .defaultLegendArguments ------------------------------------------------------
 
-.defaultLegendArguments <- function(x = "topright", horiz=FALSE)
+.defaultLegendArguments <- function(x = "topright", horiz = FALSE)
 {
-  list(x=x, horiz=horiz, cex = 0.7, bg = "white")
+  list(x = x, horiz = horiz, cex = 0.7, bg = "white")
 }
 
 # plotEventOverview ------------------------------------------------------------
@@ -1085,12 +1084,13 @@ getFunctionValueOrDefault2 <- function(
 #' 
 plotEventOverview <- function(events, settings, dbg = FALSE)
 {
-  currentGraphicalParameters <- graphics::par(no.readonly = TRUE) 
-  on.exit(graphics::par(currentGraphicalParameters))
+  old_pars <- graphics::par(no.readonly = TRUE)
+  
+  on.exit(graphics::par(old_pars))
   
   kwb.plot::setMargins(bottom = 7)
   
-  myTitle <- sprintf(
+  title_text <- sprintf(
     "hydraulic events\nH > %0.2f m\ngap(H <= %0.2f m) > %0.0f h",
     get_H_threshold(settings),
     get_H_threshold(settings),
@@ -1102,7 +1102,7 @@ plotEventOverview <- function(events, settings, dbg = FALSE)
     events$hydraulic, 
     ylim = c(0,3.4), 
     y1 = 2.3, 
-    title = myTitle, 
+    title = title_text, 
     leftMargin = 0.3, 
     xlab = "")
   
@@ -1140,7 +1140,7 @@ plot_H_v_Q <- function(
   in.rows = TRUE, to.pdf = FALSE
 ) 
 {  
-  PDF <- kwb.utils::preparePdfIf(to.pdf, landscape = TRUE)
+  pdf_file <- kwb.utils::preparePdfIf(to.pdf, landscape = TRUE)
   
   old.par <- if (in.rows) {
     graphics::par(mfrow = c(3, 1), mar = c(3, 5, 3, 2))
@@ -1166,50 +1166,45 @@ plot_H_v_Q <- function(
     ylim = kwb.plot::appropriateLimits(datLastDuration$Q, c(0, Qmax))
   )
   
-  kwb.utils::finishAndShowPdfIf(to.pdf, PDF)
+  kwb.utils::finishAndShowPdfIf(to.pdf, pdf_file)
 }
 
 # .getResultColours ------------------------------------------------------------
 
-.getResultColours <- function
-(
-  resultTypes, 
-  colour.success="darkgreen"
-)
+.getResultColours <- function(resultTypes, colour.success = "darkgreen")
 {
-  resultColours <- .resultsToColours(resultTypes, colour.success)
-  colourVector <- sapply(resultTypes, function(x) resultColours[x])
-  names(colourVector) <- NULL
+  result_colours <- .resultsToColours(resultTypes, colour.success)
   
-  colourVector
+  unname(sapply(resultTypes, function(x) result_colours[x]))
 }
 
 # .resultsToColours ------------------------------------------------------------
 
-.resultsToColours <- function
-(
-  resultTypes, 
-  successColour="darkgreen"
-)
+.resultsToColours <- function(resultTypes, successColour = "darkgreen")
 {
-  successType <- "SUCCESS"
+  success_type <- "SUCCESS"
   
-  resultTypes <- unique(as.character(resultTypes))
-  errorTypes <- setdiff(resultTypes, successType)  
+  result_types <- unique(as.character(resultTypes))
   
-  if (successType %in% resultTypes) {
-    typeColours <- successColour
-    names(typeColours) <- successType
-  }
-  else {
-    typeColours <- character()    
-  }
+  error_types <- setdiff(result_types, success_type)  
   
-  if (!isNullOrEmpty(errorTypes)) {
-    errorColours <- grDevices::heat.colors(length(errorTypes))
-    names(errorColours) <- errorTypes
-    typeColours <- c(typeColours, errorColours)
+  type_colours <- if (success_type %in% result_types) {
+    
+    stats::setNames(successColour, success_type)
+    
+  } else {
+    
+    character()    
   }
   
-  typeColours
+  if (! isNullOrEmpty(error_types)) {
+    
+    error_colours <- grDevices::heat.colors(length(error_types))
+    
+    names(error_colours) <- error_types
+    
+    type_colours <- c(type_colours, error_colours)
+  }
+  
+  type_colours
 }
