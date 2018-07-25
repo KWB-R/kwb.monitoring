@@ -32,7 +32,7 @@
   
   if (! is.null(sampleInformation)) {
     
-    density <- .getShadingLinesDensities(
+    density <- get_shade_densities(
       sampleInformation$bottleEvents$bottle, settings$bottlesToDiscard
     )
     
@@ -107,8 +107,8 @@ plot_Q_columns <-function(
   do.call(graphics::legend, args = legend_args)
 }
 
-# .getShadingLinesDensities ----------------------------------------------------
-.getShadingLinesDensities <- function(
+# get_shade_densities ----------------------------------------------------------
+get_shade_densities <- function(
   bottleNumbers, bottlesToDiscard, density = 15
 )
 {
