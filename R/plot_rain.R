@@ -18,17 +18,17 @@
   
   if (any(kwb.utils::inRange(timestamps, xlim[1], xlim[2]))) {  
     
-    xlim <- .getXLim(xlim = xlim, timestamps = timestamps, shift.to.begin = 0)
+    xlim <- get_appropriate_xlim(xlim, timestamps, shift.to.begin = 0)
     
     # get y limits over all gauges to be plotted
-    ylim <- .getYLim(
+    ylim <- get_appropriate_ylim(
       rainData, gauges, gauge_indices, 
       in.limits = kwb.plot::inLimits(timestamps, xlim)
     )
     
     xlims_rain <- if (! isNullOrEmpty(eventAndStat)) {
       
-      .getRainXLims(eventAndStat, gauges)      
+      get_rain_xlim_per_gauge(eventAndStat, gauges)      
     }
     
     # plot rain for all gauges
@@ -60,8 +60,8 @@
   }
 }
 
-# .getXLim ---------------------------------------------------------------------
-.getXLim <- function(xlim, timestamps, shift.to.begin = 0)
+# get_appropriate_xlim ---------------------------------------------------------
+get_appropriate_xlim <- function(xlim, timestamps, shift.to.begin = 0)
 {
   t_beg <- timestamps - shift.to.begin
   t_end <- t_beg + kwb.datetime::getTimestepInSeconds(timestamps, default = 60)
@@ -69,29 +69,29 @@
   kwb.plot::appropriateLimits(x = c(t_beg, t_end), limits = xlim)  
 }
 
-# .getYLim ---------------------------------------------------------------------
-.getYLim <- function(rainData, gauges, gaugeIndices, in.limits)
+# get_appropriate_ylim ---------------------------------------------------------
+get_appropriate_ylim <- function(rainData, gauges, gaugeIndices, in.limits)
 {
   ymax <- 0
   
   for (i in gaugeIndices) {
     
-    ymax <- max(ymax, .getRainLimits(rainData[[gauges[i]]], in.limits)[2])
+    ymax <- max(ymax, get_rain_limits(rainData[[gauges[i]]], in.limits)[2])
   }
   
   c(0, ymax)  
 }
 
-# .getRainLimits ---------------------------------------------------------------
-.getRainLimits <- function(values, in.limits) 
+# get_rain_limits --------------------------------------------------------------
+get_rain_limits <- function(values, in.limits) 
 {
   kwb.plot::appropriateLimits(
     x = values[in.limits], limits = c(0, NA), default = c(0, 1)
   )
 }
 
-# .getRainXLims ----------------------------------------------------------------
-.getRainXLims <- function(hydraulicEvents, gauges)
+# get_rain_xlim_per_gauge ------------------------------------------------------
+get_rain_xlim_per_gauge <- function(hydraulicEvents, gauges)
 {
   xlims_rain <- list()
   
