@@ -17,26 +17,26 @@ createDummyEventThresholdFiles <- function(
   settings = NULL
 )
 {
-  template.file <- system.file(
+  template_file <- system.file(
     "extdata", "hyd_event_thresholds_Template.txt", package = "kwb.monitoring"
   )
   
-  template <- readLines(template.file)
+  template <- readLines(template_file)
   
-  outfiles <- list()
-  
-  for (station in stations) {
+  # Define helper function
+  write_threshold_file <- function(station) {
     
-    outfiles[[station]] <- file.path(
-      outdir, paste0("_hyd_event_thresholds_", station, ".txt")
+    file <- file.path(outdir, sprintf("_hyd_event_thresholds_%s.txt", station))
+    
+    kwb.utils::catAndRun(
+      sprintf("Creating dummy event threshold file: '%s'", file),
+      writeLines(gsub("<station>", station, template), file)
     )
     
-    cat("Creating dummy event threshold file:", outfiles[[station]], "... ")
-    writeLines(gsub("<station>", station, template), outfiles[[station]] )
-    cat("ok.\n")
+    file
   }
   
-  outfiles
+  stats::setNames(lapply(stations, write_threshold_file), stations)
 }
 
 # configure --------------------------------------------------------------------
@@ -116,12 +116,12 @@ configure <- function
   Qthresholds = NULL,  
   Vthresholds = NULL,
   tstep.fill.s = 60,
-  evtSepTime = 2*3600,
+  evtSepTime = 2 * 3600,
   sampleEventSeparationTime = NA,
   durationThreshold = 5,   
   outsep = ";",
   outdec = ",",
-  context = c("left"=0.1, "right"=0.2),
+  context = c(left = 0.1, right = 0.2),
   plotchars = c(1, 3, 4, 4),
   rain.aggregation.interval = 600,
   max.samples.ok = 4,
@@ -129,29 +129,30 @@ configure <- function
   dictionaryFile = ""
 )
 {
-  list(rawdir = rawdir,
-       station = station,
-       sampleEventIndex = sampleEventIndex,
-       sampleEventMethod = sampleEventMethod,
-       replaceMissingQMethod  =  replaceMissingQMethod,
-       bottlesToDiscard = bottlesToDiscard,
-       Vbottle = Vbottle,
-       Vmax = Vmax,
-       Hthresholds = Hthresholds,
-       Qthresholds = Qthresholds,
-       Vthresholds = Vthresholds,
-       tstep.fill.s = tstep.fill.s,
-       evtSepTime = evtSepTime,
-       sampleEventSeparationTime = sampleEventSeparationTime,
-       durationThreshold = durationThreshold,
-       outsep = outsep,
-       outdec = outdec,
-       context = context,
-       plotchars = plotchars,
-       rain.aggregation.interval = rain.aggregation.interval,
-       max.samples.ok = max.samples.ok,
-       bottlesToConsider = bottlesToConsider,
-       dictionaryFile = dictionaryFile
+  list(
+    rawdir = rawdir,
+    station = station,
+    sampleEventIndex = sampleEventIndex,
+    sampleEventMethod = sampleEventMethod,
+    replaceMissingQMethod  =  replaceMissingQMethod,
+    bottlesToDiscard = bottlesToDiscard,
+    Vbottle = Vbottle,
+    Vmax = Vmax,
+    Hthresholds = Hthresholds,
+    Qthresholds = Qthresholds,
+    Vthresholds = Vthresholds,
+    tstep.fill.s = tstep.fill.s,
+    evtSepTime = evtSepTime,
+    sampleEventSeparationTime = sampleEventSeparationTime,
+    durationThreshold = durationThreshold,
+    outsep = outsep,
+    outdec = outdec,
+    context = context,
+    plotchars = plotchars,
+    rain.aggregation.interval = rain.aggregation.interval,
+    max.samples.ok = max.samples.ok,
+    bottlesToConsider = bottlesToConsider,
+    dictionaryFile = dictionaryFile
   )
 }
 
@@ -182,10 +183,12 @@ rainGaugesNearStation <- function(station = NULL)
   x$C_M1 <- c("Wila", "Wil", "Stg", "ZhlI")
   
   for (station.tmp in c("C_M2", "C_M3", "C_M4", "C_M5", "C_M6")) {
+    
     x[[station.tmp]] <- x$C_M1
   }
   
   if (! is.null(station)) {
+    
     x <- x[[station]]
   } 
   
