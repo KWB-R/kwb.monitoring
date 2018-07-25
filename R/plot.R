@@ -497,6 +497,7 @@ plot_sampled_event <- function(
   stopifnot(length(samplerFile) == 1)
   
   if (to.pdf) {  
+    
     eventName <- sampleLogFileToSampleName(samplerFile)
     
     PDF <- getOrCreatePath(
@@ -603,37 +604,46 @@ plot_sampled_event <- function(
   ylim = c(0, NA), main = "", q.threshold = 0, interpolate = TRUE, ...
 )
 {
-  if (!is.null(sampleInformation)) {
+  if (! is.null(sampleInformation)) {
+    
     samplerEvent <- sampleInformation$samplerEvents
+    
     stopifnot(nrow(samplerEvent) == 1)
     
     if (is.null(xlim)) {
-      xlim <- kwb.utils::preparePdf(samplerEvent)
+      
+      #xlim <- kwb.utils::preparePdf(samplerEvent)
+      xlim <- kwb.event::eventToXLim(samplerEvent)
     }    
   }
 
   eventSettings <- settings$event[[settings$station]]
   
-  if (!is.null(eventSettings)) {
+  time.dependent.thresholds <- if (! is.null(eventSettings)) {
     
-    time.dependent.thresholds <- kwb.utils::renameColumns(eventSettings, list(
+    kwb.utils::renameColumns(eventSettings, list(
       Qthreshold = "threshold"
     ))
-  }
-  else {
-    time.dependent.thresholds <- NULL
-  }
+  } # else NULL (implicitly)
+
+  plot_Q_columns(
+    hydraulicData, xlim = xlim, ylim = ylim, main = main, 
+    q.threshold = get_Q_threshold(settings), 
+    time.dependent.thresholds = time.dependent.thresholds, 
+    interpolate = interpolate, ...
+  )
   
-  plot_Q_columns(hydraulicData, xlim=xlim, ylim=ylim, main=main,
-                 q.threshold = get_Q_threshold(settings), 
-                 time.dependent.thresholds = time.dependent.thresholds, interpolate =interpolate, ...)
-  
-  if (!is.null(sampleInformation)) {
-    density <- .getShadingLinesDensities(sampleInformation$bottleEvents$bottle, 
-                                         settings$bottlesToDiscard)
-    plotSampleInformation(sampleInformation, add=TRUE, density=density, main="", 
-                          maxSamplesOk=settings$max.samples.ok)
-  }      
+  if (! is.null(sampleInformation)) {
+    
+    density <- .getShadingLinesDensities(
+      sampleInformation$bottleEvents$bottle, settings$bottlesToDiscard
+    )
+    
+    plotSampleInformation(
+      sampleInformation, add = TRUE, density = density, main = "", 
+      maxSamplesOk = settings$max.samples.ok
+    )
+  }
 }
 
 # .getShadingLinesDensities ----------------------------------------------------
