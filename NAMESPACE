@@ -1,4 +1,8 @@
+importFrom(kwb.utils, commaCollapsed)
 importFrom(kwb.utils, isNullOrEmpty)
+importFrom(kwb.utils, quotient)
+importFrom(kwb.utils, removeColumns) 
+importFrom(kwb.utils, renameColumns )
 importFrom(kwb.utils, selectColumns)
 importFrom(kwb.utils, selectElements)
 

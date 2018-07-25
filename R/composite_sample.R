@@ -9,93 +9,108 @@
 #'   for the selected bottles but also for all bottles (inclusive discarded
 #'   ones). Default: \code{FALSE}
 #'   
+#' @importFrom kwb.utils commaCollapsed
+#' @importFrom kwb.utils quotient
+#' @importFrom kwb.utils removeColumns 
+#' @importFrom kwb.utils renameColumns 
+#' 
 calculateVolumeCompositeSample <- function(
   hydraulicSubset, settings, show.all.bottles = FALSE
 ) 
 {
-  # calculate discharge volume (= timestep * sum_of_flows) per bottle  
-  V.per.bottle <- stats::aggregate(
+  # Calculate discharge volume (= timestep * sum_of_flows) per bottle  
+  V_per_bottle <- stats::aggregate(
     hydraulicSubset$Q, 
     by = list(bottle = hydraulicSubset$bottle), 
     FUN = sum
   )
   
-  V.per.bottle <- kwb.utils::renameColumns(V.per.bottle, list(x = "Q.sum"))
+  V_per_bottle <- renameColumns(V_per_bottle, list(x = "Q.sum"))
   
-  # there must be a unique time step in hydraulicData
-  timeStep.s <- unique(diff(as.integer(hydraulicSubset$DateTime)))
+  # There must be a unique time step in hydraulicData
+  timestep_s <- unique(diff(as.integer(hydraulicSubset$DateTime)))
   
-  if (length(timeStep.s) > 1) {
+  if (length(timestep_s) > 1) {
+    
     print(hydraulicSubset)
-    stop("There are different time steps (printed above): ", timeStep.s)
+    
+    stop("There are different time steps (printed above): ", timestep_s)
   }
   
-  V.per.bottle$V.m3 <- (V.per.bottle$Q.sum * timeStep.s) / 1000
+  V_per_bottle$V.m3 <- (V_per_bottle$Q.sum * timestep_s) / 1000
   
   if (show.all.bottles) {
+    
     cat("\n\n*** Cumulated flow per interval represented by bottle (all bottles):\n")
-    print(V.per.bottle)    
+    
+    print(V_per_bottle)    
   }  
   
-  V.per.bottle$useBottle <- TRUE
+  V_per_bottle$useBottle <- TRUE
   
-  # do not consider bottles that were not fully filled...
-  if (!all(is.na(settings$bottlesToDiscard))) {
+  # Do not consider bottles that were not fully filled...
+  if (! all(is.na(settings$bottlesToDiscard))) {
     
-    cat(sprintf(
-      "\n\nBottles to discard: %s\n", 
-      kwb.utils::commaCollapsed(settings$bottlesToDiscard)
-    ))
+    catFormatted(
+      "\n\nBottles to discard: %s\n", commaCollapsed(settings$bottlesToDiscard)
+    )
     
-    rows.to.discard <- which(V.per.bottle$bottle %in% settings$bottlesToDiscard)
-    V.per.bottle$useBottle[rows.to.discard] <- FALSE
-  }
-  
-  if (! any(V.per.bottle$useBottle)) {
-    stop("not at least one bottle to be used!")    
-  }
-  
-  V.per.bottle$V.used <- V.per.bottle$V.m3
-  V.per.bottle$V.used[! V.per.bottle$useBottle] <- NA
-  
-  V.total <- sum(V.per.bottle$V.used, na.rm=TRUE)
-  
-  if (V.total != 0) {
-    V.per.bottle$ratio <- V.per.bottle$V.used / V.total  
-  }
-  else {
-    V.per.bottle$ratio <- rep(0, nrow(V.per.bottle))
-  }
-  
-  maxRatio <- max(V.per.bottle$ratio, na.rm=TRUE)
-  
-  if (maxRatio != 0) {
-    V.per.bottle$ratioNormed <- V.per.bottle$ratio / maxRatio    
-  }
-  else {
-    V.per.bottle$ratioNormed <- rep(0, nrow(V.per.bottle))
-  }
-  
-  V.per.bottle$V.bottle.mL <- V.per.bottle$ratioNormed * settings$Vbottle
-  
-  cat("\n\n*** cumulated flow per interval represented by non-discarded bottles:\n\n")  
-  print(V.per.bottle[V.per.bottle$useBottle, ])
-  
-  V.bottle.total <- sum(V.per.bottle$V.bottle.mL, na.rm=TRUE)
-  cat(sprintf("\nTotal volume: %.0f mL\n", V.bottle.total))
-  
-  if (V.bottle.total > settings$Vmax) {
+    rows_to_discard <- which(V_per_bottle$bottle %in% settings$bottlesToDiscard)
     
-    reductionFactor <- settings$Vmax / V.bottle.total
+    V_per_bottle$useBottle[rows_to_discard] <- FALSE
+  }
+  
+  if (! any(V_per_bottle$useBottle)) {
     
-    cat(sprintf("Total volume > Vmax (= %0.2f mL) -> Volumes are reduced by factor %0.2f to fit the maximum...\n",
-                settings$Vmax, reductionFactor))
+    stop("Not at least one bottle to be used!")    
+  }
+  
+  V_per_bottle$V.used <- V_per_bottle$V.m3
+  
+  V_per_bottle$V.used[! V_per_bottle$useBottle] <- NA
+  
+  V_total <- sum(V_per_bottle$V.used, na.rm = TRUE)
+  
+  V_per_bottle$ratio <- quotient(V_per_bottle$V.used, V_total, 0)
+  
+  maxRatio <- max(V_per_bottle$ratio, na.rm = TRUE)
+  
+  V_per_bottle$ratioNormed <- quotient(V_per_bottle$ratio, maxRatio, 0)
+
+  V_per_bottle$V.bottle.mL <- V_per_bottle$ratioNormed * settings$Vbottle
+  
+  cat("\n\n*** cumulated flow per interval represented by non-discarded bottles:\n\n")
+  
+  print(V_per_bottle[V_per_bottle$useBottle, ])
+  
+  V_bottle_total <- sum(V_per_bottle$V.bottle.mL, na.rm = TRUE)
+  
+  catFormatted("\nTotal volume: %.0f mL\n", V_bottle_total)
+  
+  if (V_bottle_total > settings$Vmax) {
     
-    V.per.bottle$V.bottle.mL <- V.per.bottle$V.bottle.mL * reductionFactor
+    reduction <- settings$Vmax / V_bottle_total
+    
+    catFormatted(
+      "Total volume > Vmax (= %0.2f mL) -> Volumes are reduced by factor %0.2f to fit the maximum...\n",
+      settings$Vmax, reduction
+    )
+    
+    V_per_bottle$V.bottle.mL <- V_per_bottle$V.bottle.mL * reduction
+    
   } else {
-    cat(sprintf("to increase total volume, increase Vbottle (currently %0.2f mL)...\n",
-                settings$Vbottle))
+    
+    catFormatted(
+      "to increase total volume, increase Vbottle (currently %0.2f mL)...\n",
+      settings$Vbottle
+    )
   }
   
-  kwb.utils::removeColumns(V.per.bottle, "Q.sum")
+  removeColumns(V_per_bottle, "Q.sum")
+}
+
+# catFormatted -----------------------------------------------------------------
+catFormatted <- function(format, ...)
+{
+  cat(sprintf(format, ...))
 }
