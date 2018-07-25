@@ -18,7 +18,7 @@ plotTotalDischargeVersusRainProperties <- function(
   rain_columns <- paste(stations, statistics, sep = ".")
   
   rain_columns <- intersect(rain_columns, names(hydraulicEvents))
-    
+  
   if (isNullOrEmpty(rain_columns)) {
     
     warning("There are no rain properties at all in hydraulicEvents!")
@@ -43,7 +43,7 @@ plotTotalDischargeVersusRainProperties <- function(
     
     on.exit(kwb.utils::finishAndShowPdfIf(TRUE, pdf_file))
   }
-
+  
   graphics::plot(
     NA, NA, xlim = xlim, ylim = ylim, xlab = "Runoff volume in L", 
     ylab = ylab[statistics], las = 1, main = main
@@ -132,7 +132,7 @@ plot_hydraulic_events <- function
   }
   
   on.exit(kwb.utils::finishAndShowPdfIf(to.pdf, PDF = pdf_file, dbg = FALSE))
-    
+  
   if (plot.event.overview) {
     
     plotEventDistribution(eventsAndStat = eventsAndStat, settings = settings)
@@ -168,7 +168,7 @@ plotEventDistribution <- function(eventsAndStat, settings)
     settings = settings, 
     settingNames = c("evtSepTime", "durationThreshold")
   )
-
+  
   old_pars <- graphics::par(no.readonly = TRUE)
   
   graphics::layout(matrix(c(1,2), nrow = 2), heights = c(1.1, 4))
@@ -178,7 +178,7 @@ plotEventDistribution <- function(eventsAndStat, settings)
   gplots::textplot(info_general, valign = "top", cex = 1)
   
   main <- paste("Station:", settings$station)          
-
+  
   graphics::title(main)
   
   statistics <- formatEventStatisticsTable(

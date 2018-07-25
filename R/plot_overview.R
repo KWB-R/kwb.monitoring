@@ -49,7 +49,7 @@ showOverview <- function(
 #' 
 plotOverview <- function(dat, station, Qmax = NULL, Hmax = NULL)
 {
-  dat <- .prepareDataForOverviewPlot(dat)
+  dat <- prepareDataForOverviewPlot(dat)
   
   commonArguments <- list(
     main = paste("Station:", station),
@@ -63,9 +63,9 @@ plotOverview <- function(dat, station, Qmax = NULL, Hmax = NULL)
   plotOverview_byDay(dat, commonArguments, Qmax, Hmax)
 }
 
-# .prepareDataForOverviewPlot --------------------------------------------------
+# prepareDataForOverviewPlot --------------------------------------------------
 
-.prepareDataForOverviewPlot <- function(dataFrame)
+prepareDataForOverviewPlot <- function(dataFrame)
 {
   # unit conversion m -> cm
   if (!is.null(dataFrame$H)) {
@@ -135,16 +135,16 @@ plotOverview_byDay <- function(dat, commonArguments, Qmax, Hmax)
   ylab.Q <- "Q (L/s)"
   
   if (all(c("H", "Q") %in% parameterNames)) {
-    ylim <- list(.maxValue_to_lim(Hmax), 
-                 .maxValue_to_lim(Qmax))
+    ylim <- list(max_value_to_limit(Hmax), 
+                 max_value_to_limit(Qmax))
     ylab <- sprintf("left: %s, right: %s", ylab.H, ylab.Q)
   } 
   else if ("H" %in% parameterNames) {    
-    ylim <- .maxValue_to_lim(Hmax)
+    ylim <- max_value_to_limit(Hmax)
     ylab <- ylab.H
   } 
   else if ("Q" %in% parameterNames) {
-    ylim <- .maxValue_to_lim(Qmax)
+    ylim <- max_value_to_limit(Qmax)
     ylab <- ylab.Q
   }
   
@@ -154,11 +154,11 @@ plotOverview_byDay <- function(dat, commonArguments, Qmax, Hmax)
   # of value -999 (will not be seen within ylim)
   
   if ("Q" %in% parameterNames) {
-    dat <- .addFakeEntriesForDaysWithoutData(dat, parameterName = "Q")
+    dat <- addFakeEntriesForDaysWithoutData(dat, parameterName = "Q")
   }
   
   if ("H" %in% parameterNames) {
-    dat <- .addFakeEntriesForDaysWithoutData(dat, parameterName = "H")
+    dat <- addFakeEntriesForDaysWithoutData(dat, parameterName = "H")
   }
   
   # add daily statistics
@@ -182,9 +182,9 @@ plotOverview_byDay <- function(dat, commonArguments, Qmax, Hmax)
   graphics::plot(trellis.obj)
 }
 
-# .maxValue_to_lim -------------------------------------------------------------
+# max_value_to_limit -----------------------------------------------------------
 
-.maxValue_to_lim <- function(maxValue)
+max_value_to_limit <- function(maxValue)
 {
   if (is.null(maxValue)) {
     NULL
@@ -194,14 +194,14 @@ plotOverview_byDay <- function(dat, commonArguments, Qmax, Hmax)
   }
 }
 
-# .addFakeEntriesForDaysWithoutData --------------------------------------------
+# addFakeEntriesForDaysWithoutData ---------------------------------------------
 
 #' Add Fake Entries for Days Without Data
 #' 
 #' @param dataFrame data frame with columns \emph{day}, \emph{parName},
 #'   \emph{parVal}
 #' 
-.addFakeEntriesForDaysWithoutData <- function(dataFrame, parameterName = "Q")
+addFakeEntriesForDaysWithoutData <- function(dataFrame, parameterName = "Q")
 {
   allDays <- unique(dataFrame$day)
   

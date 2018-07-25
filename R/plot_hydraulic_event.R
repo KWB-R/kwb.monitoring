@@ -39,7 +39,7 @@ plot_hydraulic_event <- function(
   
   on.exit(graphics::par(old_pars), add = TRUE)  
   
-  .setPageLayout(numberOfGauges = length(gauges))
+  set_page_layout(numberOfGauges = length(gauges))
   
   kwb.plot::setMargins(top = 2, bottom = 3)
   
@@ -93,7 +93,7 @@ plot_hydraulic_event <- function(
   
   draw_limits(v = xlim_event, col = "red")  
   
-  .textplot_eventInfo(settings = settings, eventAndStat = eventAndStat)
+  textplot_event_info(settings = settings, eventAndStat = eventAndStat)
 }
 
 # rainGaugesNearStation --------------------------------------------------------
@@ -135,8 +135,8 @@ rainGaugesNearStation <- function(station = NULL)
   x
 }
 
-# .setPageLayout ---------------------------------------------------------------
-.setPageLayout <- function(numberOfGauges, relativeRainPlotHeight = 0.7)
+# set_page_layout --------------------------------------------------------------
+set_page_layout <- function(numberOfGauges, relativeRainPlotHeight = 0.7)
 {
   n_rows <- numberOfGauges + 2
   
@@ -148,8 +148,8 @@ rainGaugesNearStation <- function(station = NULL)
   )
 }
 
-# .textplot_eventInfo ----------------------------------------------------------
-.textplot_eventInfo <- function(settings, eventAndStat)
+# textplot_event_info ----------------------------------------------------------
+textplot_event_info <- function(settings, eventAndStat)
 {
   elements <- c("evtSepTime", "durationThreshold", "replaceMissingQMethod")
   
