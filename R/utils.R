@@ -33,3 +33,33 @@ clean_warning <- function(...)
 {
   warning(..., call. = FALSE)
 }
+
+# getFunctionValueOrDefault2 ---------------------------------------------------
+
+#' Get Function Value or Default 2
+#' 
+#' @param values passed to \code{\link[kwb.utils]{getFunctionValueOrDefault}}
+#' @param FUN passed to \code{\link[kwb.utils]{getFunctionValueOrDefault}}
+#' @param default passed to \code{\link[kwb.utils]{getFunctionValueOrDefault}}
+#' @param timestamps vector of timestamps (used in warning message) 
+#' @param columnName column name (used in warning message)
+#' 
+getFunctionValueOrDefault2 <- function(
+  values, FUN, default, timestamps = NULL, columnName = ""
+)
+{
+  prolog <- ""
+  
+  if (! is.null(timestamps)) {
+    
+    prolog <- sprintf(
+      "Time interval [%s ... %s]:", timestamps[1], utils::tail(timestamps, 1)
+    )
+  }
+  
+  warning_text <- paste(prolog, sprintf(
+    "all %s-values are NA -> taking default: %s", columnName, toString(default)
+  ))
+  
+  kwb.utils::getFunctionValueOrDefault(values, FUN, default, warning_text)
+}
