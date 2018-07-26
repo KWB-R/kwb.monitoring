@@ -200,6 +200,7 @@ max_value_to_limit <- function(maxValue)
 #' 
 #' @param dataFrame data frame with columns \emph{day}, \emph{parName},
 #'   \emph{parVal}
+#' @param parameterName name of parameter, default: \code{"Q"}
 #' 
 addFakeEntriesForDaysWithoutData <- function(dataFrame, parameterName = "Q")
 {
@@ -210,19 +211,19 @@ addFakeEntriesForDaysWithoutData <- function(dataFrame, parameterName = "Q")
   
   missingDays <- setdiff(allDays, daysWithQData)
   
-  for (missingDay in missingDays) {
+  fake_entries <- lapply(missingDays, function(missingDay) {
+    
     # cat("No Q-value at all at", missingDay, "-> introducing \"fake\" value: -999.\n")
-    fakeEntry <- data.frame(
+    kwb.utils::noFactorDataFrame(
       DateTime = hsToPosix(paste(missingDay, "12:00:00")),
       parName = parameterName,
       parVal = -999,
       day = missingDay,
       timeonly = hsToPosix(paste("2000-01-01", "12:00:00"))
     )
-    dataFrame <- rbind(dataFrame, fakeEntry)
-  }
+  })
   
-  dataFrame
+  rbind(dataFrame, do.call(rbind, fake_entries))
 }
 
 # getStatisticsByDay -----------------------------------------------------------
