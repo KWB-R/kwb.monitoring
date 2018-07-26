@@ -6,23 +6,18 @@
 #' @param FUN.readSamplerFile function to be used for reading the sampler file
 #' @param bottlesToConsider vector of bottle numbers to consider. Defaults to NA
 #'   meaning that information on all bottles are to be returened.
-#'   
+#' @param \dots further arguments passed to \code{FUN.readSamplerFile}
+#' 
 #' @return data frame with columns \emph{file}, \emph{myDateTime},
 #'   \emph{sample}, \emph{bottle}, \emph{volume}, \emph{unit}, \emph{result}
 #'   
 readAndJoinSamplerFiles <- function(
-  samplerFiles, FUN.readSamplerFile, bottlesToConsider = NA
+  samplerFiles, FUN.readSamplerFile, bottlesToConsider = NA, ...
 )
 {
-  allSampleData <- NULL
-  
-  for (samplerFile in samplerFiles) {
-    allSampleData <- rbind(
-      allSampleData, 
-      FUN.readSamplerFile(samplerFile, bottlesToConsider = bottlesToConsider))
-  }
-  
-  allSampleData
+  do.call(rbind, lapply(samplerFiles, function(samplerFile) {
+    FUN.readSamplerFile(samplerFile, bottlesToConsider = bottlesToConsider, ...)
+  }))
 }
 
 # bottleEventsToSamplerEvents --------------------------------------------------
@@ -152,7 +147,8 @@ getSampleInformation <- function
   sampleData <- readAndJoinSamplerFiles(
     samplerFiles = samplerFiles, 
     FUN.readSamplerFile = FUN.readSamplerFile,
-    bottlesToConsider = bottlesToConsider
+    bottlesToConsider = bottlesToConsider,
+    siteCode = kwb.utils::defaultIfNULL(settings$station, NA)
   )
   
   if (isNullOrEmpty(sampleData)) {
@@ -299,7 +295,8 @@ getAllSamplerEventsFromFiles <- function(
   sampleData <- readAndJoinSamplerFiles(
     samplerFiles = samplerFiles, 
     FUN.readSamplerFile = FUN.readSamplerFile,
-    bottlesToConsider = bottlesToConsider
+    bottlesToConsider = bottlesToConsider,
+    siteCode = kwb.utils::defaultIfNULL(settings$station, NA)
   )
   
   if (isNullOrEmpty(sampleData)) {

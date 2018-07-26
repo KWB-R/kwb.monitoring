@@ -5,7 +5,7 @@
 \title{Read Multiple Auto-Sampler Files}
 \usage{
 readAndJoinSamplerFiles(samplerFiles, FUN.readSamplerFile,
-  bottlesToConsider = NA)
+  bottlesToConsider = NA, ...)
 }
 \arguments{
 \item{samplerFiles}{vector of paths to sampler files}
@@ -14,6 +14,8 @@ readAndJoinSamplerFiles(samplerFiles, FUN.readSamplerFile,
 
 \item{bottlesToConsider}{vector of bottle numbers to consider. Defaults to NA
 meaning that information on all bottles are to be returened.}
+
+\item{\dots}{further arguments passed to \code{FUN.readSamplerFile}}
 }
 \value{
 data frame with columns \emph{file}, \emph{myDateTime},
