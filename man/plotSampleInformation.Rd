@@ -5,7 +5,7 @@
 \title{Plot Sample Information}
 \usage{
 plotSampleInformation(sampleInformation, add = FALSE,
-  xlim = toUTC(range(c(sampleInformation$samplingEvents$tBeg,
+  xlim = kwb.datetime::toUTC(range(c(sampleInformation$samplingEvents$tBeg,
   sampleInformation$samplingEvents$tEnd))), ylim = c(-2, 7), main = NA,
   cex.legend = 0.6, density = 0, plotSampleIntervals = TRUE,
   maxSamplesOk = NULL, plotSamplingPoints = plotSampleIntervals)

@@ -6,8 +6,9 @@
 \usage{
 plot_hydraulic_event(hydraulicData, settings, eventAndStat,
   sampleInformation = NULL, ylim.Q = NULL, rainData = NULL,
-  gauges = NULL, left = 0.1, right = 0.1, innerMargins.HQ = c(0.2, left,
-  0.1, right), innerMargins.rain = c(0, left, 0.2, right), dbg = FALSE)
+  gauges = NULL, left = 0.1, right = 0.1, innerMargins.HQ = c(0.2,
+  left, 0.1, right), innerMargins.rain = c(0, left, 0.2, right),
+  dbg = FALSE)
 }
 \arguments{
 \item{hydraulicData}{data frame with columns \emph{DateTime}, \emph{H},

@@ -5,8 +5,9 @@
 \title{Append Interpol Columns}
 \usage{
 appendInterpolColumns(hydraulicData, settings, columnQraw = "Q.raw",
-  columnQ = "Q", columnQInterpol = "Q.interpol", columnHraw = "H.raw",
-  columnH = "H", columnHInterpol = "H.interpol")
+  columnQ = "Q", columnQInterpol = "Q.interpol",
+  columnHraw = "H.raw", columnH = "H",
+  columnHInterpol = "H.interpol")
 }
 \arguments{
 \item{hydraulicData}{data frame containing hydraulic data}

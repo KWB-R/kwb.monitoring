@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Get Sample Information — getSampleInformation • kwb.monitoring</title>
+<title>Add Fake Entries for Days Without Data — addFakeEntriesForDaysWithoutData • kwb.monitoring</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -36,9 +36,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
 
 
-<meta property="og:title" content="Get Sample Information — getSampleInformation" />
+<meta property="og:title" content="Add Fake Entries for Days Without Data — addFakeEntriesForDaysWithoutData" />
 
-<meta property="og:description" content="Get Sample Information" />
+<meta property="og:description" content="Add Fake Entries for Days Without Data" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -124,67 +124,32 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Get Sample Information</h1>
-    <small class="dont-index">Source: <a href='https://github.com/KWB-R/kwb.monitoring/blob/master/R/sample.R'><code>R/sample.R</code></a></small>
-    <div class="hidden name"><code>getSampleInformation.Rd</code></div>
+    <h1>Add Fake Entries for Days Without Data</h1>
+    <small class="dont-index">Source: <a href='https://github.com/KWB-R/kwb.monitoring/blob/master/R/plot_overview.R'><code>R/plot_overview.R</code></a></small>
+    <div class="hidden name"><code>addFakeEntriesForDaysWithoutData.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Get Sample Information</p>
+    <p>Add Fake Entries for Days Without Data</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>getSampleInformation</span>(<span class='kw'>dictionary</span> <span class='kw'>=</span> <span class='no'>settings</span>$<span class='no'>dictionary</span>,
-  <span class='kw'>sampleEventSeparationTime</span> <span class='kw'>=</span> <span class='no'>settings</span>$<span class='no'>sampleEventSeparationTime</span>,
-  <span class='kw'>sampleEventIndices</span> <span class='kw'>=</span> -<span class='fl'>1</span>,
-  <span class='kw'>bottlesToConsider</span> <span class='kw'>=</span> <span class='no'>settings</span>$<span class='no'>bottlesToConsider</span>,
-  <span class='kw'>method</span> <span class='kw'>=</span> <span class='no'>settings</span>$<span class='no'>sampleEventMethod</span>, <span class='no'>FUN.readSamplerFile</span>,
-  <span class='kw'>settings</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>signalWidth</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
+    <pre class="usage"><span class='fu'>addFakeEntriesForDaysWithoutData</span>(<span class='no'>dataFrame</span>, <span class='kw'>parameterName</span> <span class='kw'>=</span> <span class='st'>"Q"</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>dictionary</th>
-      <td><p>default: settings$dictionary</p></td>
+      <th>dataFrame</th>
+      <td><p>data frame with columns <em>day</em>, <em>parName</em>,
+<em>parVal</em></p></td>
     </tr>
     <tr>
-      <th>sampleEventSeparationTime</th>
-      <td><p>default: settings$sampleEventSeparationTime</p></td>
-    </tr>
-    <tr>
-      <th>sampleEventIndices</th>
-      <td><p>default: -1</p></td>
-    </tr>
-    <tr>
-      <th>bottlesToConsider</th>
-      <td><p>default: settings$bottlesToConsider</p></td>
-    </tr>
-    <tr>
-      <th>method</th>
-      <td><p>one of the methods supported by
-<code><a href='sampleDataToSamplingEvents.html'>sampleDataToSamplingEvents</a></code>. default:
-settings$sampleEventMethod</p></td>
-    </tr>
-    <tr>
-      <th>FUN.readSamplerFile</th>
-      <td><p>function to be used to read an auto sampler file</p></td>
-    </tr>
-    <tr>
-      <th>settings</th>
-      <td><p>list of settings, as returned by <code><a href='configure.html'>configure</a></code></p></td>
-    </tr>
-    <tr>
-      <th>signalWidth</th>
-      <td><p>signal width in seconds. Default: 1</p></td>
+      <th>parameterName</th>
+      <td><p>name of parameter, default: <code>"Q"</code></p></td>
     </tr>
     </table>
-    
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>list with elements <em>sampleTimes</em>, <em>samplingEvents</em>,
-  <em>bottle events</em> (data frame with columns...)</p>
     
 
   </div>
@@ -192,9 +157,7 @@ settings$sampleEventMethod</p></td>
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-      
-      <li><a href="#value">Value</a></li>
-          </ul>
+                </ul>
 
   </div>
 </div>

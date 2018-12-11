@@ -12,6 +12,7 @@
 #'   respectively 
 #' @param columns vector of names containing \code{H} and \code{Q} values, 
 #'   respectively
+#' @export
 #' 
 whichAboveThresholds <- function(
   hydraulicData, indices = seq_len(nrow(hydraulicData)), 

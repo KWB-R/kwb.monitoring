@@ -6,9 +6,10 @@
 \usage{
 getSampleInformation(dictionary = settings$dictionary,
   sampleEventSeparationTime = settings$sampleEventSeparationTime,
-  sampleEventIndices = -1, bottlesToConsider = settings$bottlesToConsider,
-  method = settings$sampleEventMethod, FUN.readSamplerFile, settings = NULL,
-  signalWidth = 1)
+  sampleEventIndices = -1,
+  bottlesToConsider = settings$bottlesToConsider,
+  method = settings$sampleEventMethod, FUN.readSamplerFile,
+  settings = NULL, signalWidth = 1)
 }
 \arguments{
 \item{dictionary}{default: settings$dictionary}

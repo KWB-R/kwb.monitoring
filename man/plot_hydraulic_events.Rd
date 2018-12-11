@@ -4,8 +4,8 @@
 \alias{plot_hydraulic_events}
 \title{Plot Hydraulic Events}
 \usage{
-plot_hydraulic_events(hydraulicData, settings, eventsAndStat, to.pdf = FALSE,
-  rainData = NULL, gauges = NULL, landscape = TRUE,
+plot_hydraulic_events(hydraulicData, settings, eventsAndStat,
+  to.pdf = FALSE, rainData = NULL, gauges = NULL, landscape = TRUE,
   plot.event.overview = TRUE,
   FUN.plot_hydraulic_event = kwb.monitoring::plot_hydraulic_event, ...)
 }

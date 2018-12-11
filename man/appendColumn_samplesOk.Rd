@@ -4,8 +4,8 @@
 \alias{appendColumn_samplesOk}
 \title{Append Column "samplesOk"}
 \usage{
-appendColumn_samplesOk(samplingEvents, bottleEvents, successWord = "SUCCESS",
-  columnName = "samplesOk")
+appendColumn_samplesOk(samplingEvents, bottleEvents,
+  successWord = "SUCCESS", columnName = "samplesOk")
 }
 \arguments{
 \item{samplingEvents}{data frame with columns \code{samplerFile}, 

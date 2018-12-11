@@ -4,7 +4,8 @@
 \alias{formatEventStatisticsTable}
 \title{Format Event Statistics Table}
 \usage{
-formatEventStatisticsTable(eventStatisticsExtended, precisionLevel = NULL)
+formatEventStatisticsTable(eventStatisticsExtended,
+  precisionLevel = NULL)
 }
 \arguments{
 \item{eventStatisticsExtended}{list of event properties}

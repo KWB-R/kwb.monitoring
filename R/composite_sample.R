@@ -13,7 +13,7 @@
 #' @importFrom kwb.utils quotient
 #' @importFrom kwb.utils removeColumns 
 #' @importFrom kwb.utils renameColumns 
-#' 
+#' @export
 calculateVolumeCompositeSample <- function(
   hydraulicSubset, settings, show.all.bottles = FALSE
 ) 

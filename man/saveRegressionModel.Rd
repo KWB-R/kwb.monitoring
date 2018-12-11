@@ -5,9 +5,9 @@
 \title{Save Regression Model}
 \usage{
 saveRegressionModel(regressionModel, settings = NULL,
-  dictionary = selectElements(settings, "dictionary"),
-  sep = selectElements(settings, "outsep"), dec = selectElements(settings,
-  "outdec"))
+  dictionary = kwb.utils::selectElements(settings, "dictionary"),
+  sep = kwb.utils::selectElements(settings, "outsep"),
+  dec = kwb.utils::selectElements(settings, "outdec"))
 }
 \arguments{
 \item{regressionModel}{model object to be stored}

@@ -4,8 +4,9 @@
 \alias{whichAboveThresholds}
 \title{In Which Rows Are Thresholds Exceeded?}
 \usage{
-whichAboveThresholds(hydraulicData, indices = seq_len(nrow(hydraulicData)),
-  thresholds = c(H = NA, Q = NA), columns = c(H = "H", Q = "Q"))
+whichAboveThresholds(hydraulicData,
+  indices = seq_len(nrow(hydraulicData)), thresholds = c(H = NA, Q =
+  NA), columns = c(H = "H", Q = "Q"))
 }
 \arguments{
 \item{hydraulicData}{data frame with columns as named in \code{columns}}

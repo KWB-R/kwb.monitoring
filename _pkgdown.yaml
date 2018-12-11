@@ -6,6 +6,9 @@ authors:
 template:
   params:
     bootswatch: cerulean
+    docsearch:
+      api_key: 33b9766bf0b626774360bca5b1f68c73
+      index_name: kwb_monitoring
 
 development:
   mode: auto

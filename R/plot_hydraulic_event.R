@@ -19,7 +19,7 @@
 #' @param innerMargins.rain "inner margins" of rain plots. Default: c(0, left,
 #'   0.2, right)
 #' @param dbg  logical. If \code{TRUE} \code{eventAndStat} is printed.
-#' 
+#' @export
 plot_hydraulic_event <- function(
   hydraulicData, settings, eventAndStat, sampleInformation = NULL, 
   ylim.Q = NULL, rainData = NULL, gauges = NULL, left = 0.1, right = 0.1,  
@@ -104,7 +104,7 @@ plot_hydraulic_event <- function(
 #' 
 #' @return list (one list element per monitoring site) of character vectors 
 #'   representing rain gauge names
-#'
+#' @export
 rainGaugesNearStation <- function(station = NULL)
 {
   x <- list(

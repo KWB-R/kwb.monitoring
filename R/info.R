@@ -8,7 +8,7 @@
 #' @param do.stop passed to \code{kwb.monitoring:::get_H_threshold}, 
 #'   \code{kwb.monitoring:::get_Q_threshold}, 
 #'   \code{kwb.monitoring:::get_V_threshold}
-#'   
+#' @export   
 formatSettings <- function(
   settings, settingNames = names(settings), do.stop = FALSE
 )
@@ -130,7 +130,7 @@ addSumRow <- function(x)
 #'   \code{\link[kwb.event]{hsEvents}}
 #' @param eventNumber number of the event
 #' @param precisionLevel 1 (less precise) or 2 (more precise)
-#' 
+#' @export  
 formatEvent <- function(event, eventNumber = 1, precisionLevel = NULL)
 {
   if (is.null(precisionLevel)) {
@@ -241,7 +241,7 @@ formatDurationDaysHours <- function(duration.h)
 #' @param eventStatistics date frame with columns \emph{V.m3}, \emph{H.max},
 #'   \emph{Q.max}, \emph{Q.raw.na},
 #' @param precisionLevel number of digits after decimal point
-#' 
+#' @export   
 formatEventStatistics <- function(eventStatistics, precisionLevel = NULL)
 {
   if (is.null(precisionLevel)) {
@@ -288,7 +288,7 @@ formatFloatingPointNumber <- function(
 #' 
 #' @param eventStatisticsExtended list of event properties
 #' @param precisionLevel 1 (less precise) or 2 (more precise)
-#' 
+#' @export   
 formatEventStatisticsTable <- function(
   eventStatisticsExtended, precisionLevel = NULL
 )

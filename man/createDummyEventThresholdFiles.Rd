@@ -4,9 +4,10 @@
 \alias{createDummyEventThresholdFiles}
 \title{Create Threshold Dummy Files}
 \usage{
-createDummyEventThresholdFiles(stations = names(selectElements(settings,
-  "Hthresholds")), outdir = file.path(selectElements(settings, "rawdir"),
-  "..", "META"), settings = NULL)
+
+  createDummyEventThresholdFiles(stations = names(kwb.utils::selectElements(settings,
+  "Hthresholds")), outdir = file.path(kwb.utils::selectElements(settings,
+  "rawdir"), "..", "META"), settings = NULL)
 }
 \arguments{
 \item{stations}{names of monitoring stations}

@@ -4,8 +4,8 @@
 \alias{mergeParallelRainEventStat}
 \title{Merge Parallel Rain Event Statistics}
 \usage{
-mergeParallelRainEventStat(hydraulicEvents, rainEvents, rainData, seriesName,
-  offset = 0, plot.merged.event.info = TRUE)
+mergeParallelRainEventStat(hydraulicEvents, rainEvents, rainData,
+  seriesName, offset = 0, plot.merged.event.info = TRUE)
 }
 \arguments{
 \item{hydraulicEvents}{data frame containing information on hydraulic events,

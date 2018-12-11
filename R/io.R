@@ -29,6 +29,7 @@ printSampleInformation <- function(sampleInformation)
 #' @param settings list with elements \code{dictionary, outsep, outdec}
 #' @param sampleFile name of auto sampler file, passed to 
 #'   \code{\link{sampleLogFileToSampleName}}
+#' @export
 #' 
 saveSampleInformation <- function(sampleInformation, settings, sampleFile)
 {
@@ -92,7 +93,7 @@ sampleLogFileToSampleName <- function(sampleFile)
 #' @param open.directory if TRUE (default), the directory in which the file is
 #'   created is opened in the Windows Explorer after the file has been written.
 #' @param \dots arguments passed to \code{\link{getOrCreatePath}}
-#' 
+#' @export 
 writeCsvToPathFromDictionary <- function(
   dataFrame, 
   key,

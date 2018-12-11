@@ -5,7 +5,7 @@
 #' @param modelFile path to .RData file containing the model
 #' @param warn if \code{TRUE} (the default), a warning is given if the model
 #'   file does not exist
-#' 
+#' @export
 getModelFromFile <- function(modelFile, warn = TRUE)
 {
   if (!file.exists(modelFile)) {
@@ -50,13 +50,14 @@ getModelFromFile <- function(modelFile, warn = TRUE)
 #'   and "REGRESSION_COEFF_TXT"
 #' @param sep column separator in created file
 #' @param dec decimal character in created file
-#' 
+#' @importFrom kwb.utils selectElements
+#' @export
 saveRegressionModel <- function(
   regressionModel, 
   settings = NULL, 
-  dictionary = selectElements(settings, "dictionary"), 
-  sep = selectElements(settings, "outsep"), 
-  dec = selectElements(settings, "outdec")
+  dictionary = kwb.utils::selectElements(settings, "dictionary"), 
+  sep = kwb.utils::selectElements(settings, "outsep"), 
+  dec = kwb.utils::selectElements(settings, "outdec")
 )
 {
   modelFile <- getOrCreatePath(
@@ -322,7 +323,7 @@ selectIntervalsForCorrelation <- function(
   
   cat("*** The variable \"regressionState\" was assigned in the global environment.\n")
 
-  h.threshold.ini <- selectElements(settings, "Hthresholds")[selectElements(settings, "station")]
+  h.threshold.ini <- kwb.utils::selectElements(settings, "Hthresholds")[kwb.utils::selectElements(settings, "station")]
   
   n <- nrow(dat.all)
   

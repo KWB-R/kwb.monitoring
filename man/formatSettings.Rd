@@ -4,7 +4,8 @@
 \alias{formatSettings}
 \title{Format Settings}
 \usage{
-formatSettings(settings, settingNames = names(settings), do.stop = FALSE)
+formatSettings(settings, settingNames = names(settings),
+  do.stop = FALSE)
 }
 \arguments{
 \item{settings}{list of settings}

@@ -8,7 +8,8 @@
 #'   and containing element \code{tstep.fill.s}
 #' @param FUN.readSamplerFile e.g. kwb.ogre::readOgreSamplerFileByName or 
 #'   kwb.dswt::readDswtSamplerFileByName
-#' 
+#' @export
+#' @importFrom kwb.utils isNullOrEmpty
 getAllTypesOfEvents <- function(
   hydraulicData = NULL, settings, FUN.readSamplerFile
 ) 
@@ -125,7 +126,8 @@ getHydraulicEvents <- function
 #'   for which no special thresholds are defined
 #' @param columns optional. Named vector of character with column names for
 #'   \code{H} and \code{Q}
-#' 
+#' @importFrom lubridate %within%
+#' @export 
 getIndicesWithinEvents <- function(
   hydraulicData,
   eventSettings = NULL,
@@ -436,7 +438,8 @@ getStatistics <- function(hydraulicData, groupByColumn)
 #' @param offset time in seconds by which tBeg is shifted backwards
 #' @param plot.merged.event.info if \code{TRUE} (default), 
 #'   \code{\link[kwb.event]{plotMergedEventInfoForValidation}} is called
-#' 
+#' @importFrom kwb.utils selectElements
+#' @export 
 mergeParallelRainEventStat <- function(
   hydraulicEvents, 
   rainEvents,
@@ -450,11 +453,11 @@ mergeParallelRainEventStat <- function(
     eventNumber = "event"
   ))
   
-  hydraulicEvents$tBeg <- selectColumns(hydraulicEvents, "tBeg") - offset
+  hydraulicEvents$tBeg <- kwb.utils::selectColumns(hydraulicEvents, "tBeg") - offset
   
   events <- list(
     hydraulic = hydraulicEvents, 
-    rain = selectElements(rainEvents, seriesName)
+    rain = kwb.utils::selectElements(rainEvents, seriesName)
   )
   
   referenceName <- "hydraulic"
@@ -467,8 +470,8 @@ mergeParallelRainEventStat <- function(
   if (!isNullOrEmpty(eventRelations)) {
     
     mergedEvents <- kwb.event::getParallelEventNotEndingAfter(
-      events1 = selectElements(events, referenceName), 
-      events2 = selectElements(events, partnerName), 
+      events1 = kwb.utils::selectElements(events, referenceName), 
+      events2 = kwb.utils::selectElements(events, partnerName), 
       eventRelations = eventRelations,
       extended = TRUE
     )
@@ -480,10 +483,10 @@ mergeParallelRainEventStat <- function(
     
     if (!is.null(mergedEvents)) {
       
-      selected <- ! is.na(selectColumns(mergedEvents, "tBeg.merged"))
+      selected <- ! is.na(kwb.utils::selectColumns(mergedEvents, "tBeg.merged"))
       columns <- c("event1", "tBeg.merged", "tEnd.merged")
       events.valid <- kwb.utils::renameColumns(
-        selectColumns(mergedEvents[selected, ], columns),
+        kwb.utils::selectColumns(mergedEvents[selected, ], columns),
         list(tBeg.merged = "tBeg", tEnd.merged = "tEnd")
       )    
     }

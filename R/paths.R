@@ -10,6 +10,7 @@
 #' @param STATION value for placeholder of the same name in the dictionary
 #' @param settings optional. List with elements \code{rawdir, station} from 
 #'   which to take values to be used for \code{RAW_DIR, STATION}
+#' @export
 
 pathDictionary <- function(
   dictionaryFile, RAW_DIR = settings$rawdir, STATION = settings$station,
@@ -35,7 +36,7 @@ pathDictionary <- function(
 #'   resolved the program stops
 #' @param dbg if TRUE, debug messages are shown
 #' @param \dots arguments passed to \code{\link[kwb.utils]{resolve}}
-#' 
+#' @export
 getOrCreatePath <- function(
   variableName, dictionary = settings$dictionary, settings = NULL, 
   create.dir = FALSE, stop.on.no.resolving = TRUE, dbg = FALSE, ...

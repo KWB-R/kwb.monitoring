@@ -322,7 +322,7 @@ getAllSamplerEventsFromFiles <- function(
 }
 
 # sampleDataToSampleInformation ------------------------------------------------
-
+#' @importFrom kwb.datetime hsToPosix
 sampleDataToSampleInformation <- function(
   sampleData, 
   sampleEventSeparationTime = NA,
@@ -388,7 +388,8 @@ sampleDataToSampleInformation <- function(
 #'   time interval between two samplings at t1 and t2: D = t2 - t1 + signalWidth
 #'   
 #' @return data frame with columns \emph{tBeg}, \emph{tEnd}, ...
-#' 
+#' @importFrom kwb.datetime toUTC
+#' @export 
 sampleDataToSamplingEvents <- function(
   sampleData, method = "centre", default.interval.width.s = 600, signalWidth = 1
 )

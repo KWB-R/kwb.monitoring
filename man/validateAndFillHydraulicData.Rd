@@ -6,13 +6,15 @@
 \usage{
 validateAndFillHydraulicData(hydraulicData,
   tstep.fill.s = selectElements(settings, "tstep.fill.s"),
-  replaceMissingQMethod = selectElements(settings, "replaceMissingQMethod"),
-  regressionModels = selectElements(selectElements(settings, "regression"),
-  "models")[[selectElements(settings, "station")]],
-  regressionUsage = selectElements(selectElements(settings, "regression"),
-  "usage")[[selectElements(settings, "station")]], hydraulicEvents = NULL,
-  additionalColumns = NULL, modelDir = getOrCreatePath("REGRESSION_DIR",
-  selectElements(settings, "dictionary")), settings = NULL)
+  replaceMissingQMethod = selectElements(settings,
+  "replaceMissingQMethod"),
+  regressionModels = selectElements(selectElements(settings,
+  "regression"), "models")[[selectElements(settings, "station")]],
+  regressionUsage = selectElements(selectElements(settings,
+  "regression"), "usage")[[selectElements(settings, "station")]],
+  hydraulicEvents = NULL, additionalColumns = NULL,
+  modelDir = getOrCreatePath("REGRESSION_DIR", selectElements(settings,
+  "dictionary")), settings = NULL)
 }
 \arguments{
 \item{hydraulicData}{data frame with column \emph{DateTime}, ...}

@@ -4,8 +4,8 @@
 \alias{writeCsvToPathFromDictionary}
 \title{Write CSV to Path From Dictionary}
 \usage{
-writeCsvToPathFromDictionary(dataFrame, key, settings, open.directory = TRUE,
-  ...)
+writeCsvToPathFromDictionary(dataFrame, key, settings,
+  open.directory = TRUE, ...)
 }
 \arguments{
 \item{dataFrame}{data frame containing data to save}

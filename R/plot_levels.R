@@ -41,7 +41,7 @@
 #' @param xlim passed to \code{\link[kwb.plot]{plot_variable}}
 #' @param ylim passed to \code{\link[kwb.plot]{plot_variable}}
 #' @param innerMargins passed to \code{\link[kwb.plot]{plot_variable}}
-#' 
+#' @export
 plot_H_columns <- function(
   hydraulicData, h.threshold = 0, time.dependent.thresholds = NULL,  
   xlim = NULL, ylim = NULL, innerMargins = default_inner_margins()

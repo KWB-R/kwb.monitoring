@@ -6,7 +6,8 @@
 \usage{
 getAllSamplerEvents(rootDirectory, dictionaryFile, stations,
   FUN.readSamplerFile, bottlesToConsider = NA,
-  sampleEventSeparationTime = 3600, method = "centre", signalWidth = 60)
+  sampleEventSeparationTime = 3600, method = "centre",
+  signalWidth = 60)
 }
 \arguments{
 \item{rootDirectory}{passed to \code{availableAutoSamplerFiles2}}

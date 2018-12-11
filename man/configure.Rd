@@ -6,13 +6,13 @@
 \usage{
 configure(rawdir, station, sampleEventIndex = -1,
   sampleEventMethod = "centre", replaceMissingQMethod = "interpolate",
-  bottlesToDiscard = NA, Vbottle = 1600, Vmax = 5000, Hthresholds = 0,
-  Qthresholds = NULL, Vthresholds = NULL, tstep.fill.s = 60,
-  evtSepTime = 2 * 3600, sampleEventSeparationTime = NA,
-  durationThreshold = 5, outsep = ";", outdec = ",", context = c(left =
-  0.1, right = 0.2), plotchars = c(1, 3, 4, 4),
-  rain.aggregation.interval = 600, max.samples.ok = 4,
-  bottlesToConsider = NA, dictionaryFile = "")
+  bottlesToDiscard = NA, Vbottle = 1600, Vmax = 5000,
+  Hthresholds = 0, Qthresholds = NULL, Vthresholds = NULL,
+  tstep.fill.s = 60, evtSepTime = 2 * 3600,
+  sampleEventSeparationTime = NA, durationThreshold = 5,
+  outsep = ";", outdec = ",", context = c(left = 0.1, right = 0.2),
+  plotchars = c(1, 3, 4, 4), rain.aggregation.interval = 600,
+  max.samples.ok = 4, bottlesToConsider = NA, dictionaryFile = "")
 }
 \arguments{
 \item{rawdir}{Where is the "root" directory to raw data?}

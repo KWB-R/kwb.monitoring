@@ -21,17 +21,26 @@
 <!-- clipboard.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script>
 
+<!-- sticky kit -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script>
+
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
-<script src="../jquery.sticky-kit.min.js"></script>
 <script src="../pkgdown.js"></script>
 
+
+<!-- docsearch -->
+<script src="../docsearch.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.css" />
+<link href="../docsearch.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
 
 
 <meta property="og:title" content="Plot Hydraulic Event — plot_hydraulic_event" />
 
 <meta property="og:description" content="Plot Hydraulic Event" />
 <meta name="twitter:card" content="summary" />
+
 
 
 <!-- mathjax -->
@@ -85,6 +94,9 @@
     </li>
   </ul>
 </li>
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
@@ -95,6 +107,12 @@
   </a>
 </li>
       </ul>
+      
+      <form class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="search" class="form-control" name="search-input" id="search-input" placeholder="Search..." aria-label="Search for..." autocomplete="off">
+        </div>
+      </form>
       
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
@@ -107,7 +125,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Plot Hydraulic Event</h1>
-    <small class="dont-index">Source: <a href='https://github.com/KWB-R/kwb.monitoring/blob/master/R/plot.R'><code>R/plot.R</code></a></small>
+    <small class="dont-index">Source: <a href='https://github.com/KWB-R/kwb.monitoring/blob/master/R/plot_hydraulic_event.R'><code>R/plot_hydraulic_event.R</code></a></small>
     <div class="hidden name"><code>plot_hydraulic_event.Rd</code></div>
     </div>
 
@@ -119,8 +137,9 @@
 
     <pre class="usage"><span class='fu'>plot_hydraulic_event</span>(<span class='no'>hydraulicData</span>, <span class='no'>settings</span>, <span class='no'>eventAndStat</span>,
   <span class='kw'>sampleInformation</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ylim.Q</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rainData</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>gauges</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>left</span> <span class='kw'>=</span> <span class='fl'>0.1</span>, <span class='kw'>right</span> <span class='kw'>=</span> <span class='fl'>0.1</span>, <span class='kw'>innerMargins.HQ</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='fl'>0.2</span>, <span class='no'>left</span>,
-  <span class='fl'>0.1</span>, <span class='no'>right</span>), <span class='kw'>innerMargins.rain</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='fl'>0</span>, <span class='no'>left</span>, <span class='fl'>0.2</span>, <span class='no'>right</span>), <span class='kw'>dbg</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+  <span class='kw'>gauges</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>left</span> <span class='kw'>=</span> <span class='fl'>0.1</span>, <span class='kw'>right</span> <span class='kw'>=</span> <span class='fl'>0.1</span>, <span class='kw'>innerMargins.HQ</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='fl'>0.2</span>,
+  <span class='no'>left</span>, <span class='fl'>0.1</span>, <span class='no'>right</span>), <span class='kw'>innerMargins.rain</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='fl'>0</span>, <span class='no'>left</span>, <span class='fl'>0.2</span>, <span class='no'>right</span>),
+  <span class='kw'>dbg</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -204,6 +223,23 @@ left, 0.1, right)</p></td>
    </div>
 
   
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.js"></script>
+<script>
+  docsearch({
+    
+    
+    apiKey: '33b9766bf0b626774360bca5b1f68c73',
+    indexName: 'kwb_monitoring',
+    inputSelector: 'input#search-input.form-control',
+    transformData: function(hits) {
+      return hits.map(function (hit) {
+        hit.url = updateHitURL(hit);
+        return hit;
+      });
+    }
+  });
+</script>
+
 
   </body>
 </html>

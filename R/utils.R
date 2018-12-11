@@ -43,7 +43,7 @@ clean_warning <- function(...)
 #' @param default passed to \code{\link[kwb.utils]{getFunctionValueOrDefault}}
 #' @param timestamps vector of timestamps (used in warning message) 
 #' @param columnName column name (used in warning message)
-#' 
+#' @export
 getFunctionValueOrDefault2 <- function(
   values, FUN, default, timestamps = NULL, columnName = ""
 )

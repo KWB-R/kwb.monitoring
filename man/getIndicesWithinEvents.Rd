@@ -4,8 +4,8 @@
 \alias{getIndicesWithinEvents}
 \title{Get Indices Within Events}
 \usage{
-getIndicesWithinEvents(hydraulicData, eventSettings = NULL, thresholds = c(H
-  = NA, Q = NA), columns = c(H = "H", Q = "Q"))
+getIndicesWithinEvents(hydraulicData, eventSettings = NULL,
+  thresholds = c(H = NA, Q = NA), columns = c(H = "H", Q = "Q"))
 }
 \arguments{
 \item{hydraulicData}{data frame with a columns \emph{DateTime} and two

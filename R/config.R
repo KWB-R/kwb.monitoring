@@ -10,10 +10,11 @@
 #'  
 #' @return returns a list (with the stations as element names) containing the
 #'   paths to the created files.
-#'
+#' @importFrom kwb.utils selectElements
+#' @export
 createDummyEventThresholdFiles <- function(
-  stations = names(selectElements(settings, "Hthresholds")),
-  outdir = file.path(selectElements(settings, "rawdir"), "..", "META"),
+  stations = names(kwb.utils::selectElements(settings, "Hthresholds")),
+  outdir = file.path(kwb.utils::selectElements(settings, "rawdir"), "..", "META"),
   settings = NULL
 )
 {
@@ -101,7 +102,7 @@ createDummyEventThresholdFiles <- function(
 #'   structure and file name patterns in which the input files are expected to
 #'   reside and to which the output files will be written. See
 #'   kwb.ogre::OGRE_DEFAULT_DICTIONARY or kwb.dswt::DSWT_DEFAULT_DICTIONARY
-#'   
+#' @export   
 configure <- function
 (
   rawdir,

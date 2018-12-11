@@ -5,6 +5,7 @@
 #' @param rainData data frame with columns \emph{DateTime}
 #' @param gauges character vector of gauge names
 #' @param xlim vector of two POSIXct determining the x limits
+#' @param innerMargins passed to \code{\link[kwb.plot]{plotRain}}
 #' @param eventAndStat if not NULL (default) this must be a one row data frame
 #'   with columns ...
 #' 
@@ -101,7 +102,7 @@ get_rain_xlim_per_gauge <- function(hydraulicEvents, gauges)
     
     if (all(columns %in% names(hydraulicEvents))) {
       
-      xlims_rain[[gauge]] <- toUTC(
+      xlims_rain[[gauge]] <- kwb.datetime::toUTC(
         c(hydraulicEvents[, columns[1]], 
           hydraulicEvents[, columns[2]])
       )     

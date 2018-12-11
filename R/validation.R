@@ -41,7 +41,8 @@ findUniqueTimeStepOrStop <- function(timeStamps)
 #' @param settings settings as returned by \code{\link{configure}}. Will be used
 #'   to lookup function parameters for which no values have been given (see
 #'   defaults)
-#'   
+#' @importFrom kwb.utils selectElements selectColumns
+#' @export
 validateAndFillHydraulicData <- function(
   hydraulicData, 
   tstep.fill.s = selectElements(settings, "tstep.fill.s"),
@@ -77,7 +78,7 @@ validateAndFillHydraulicData <- function(
   # Continue only with selected columns
   # Check for missing columns
   columnNames <- c("DateTime", "H", "Q", additionalColumns)
-  hydraulicData <- selectColumns(hydraulicData, columnNames)
+  hydraulicData <- kwb.utils::selectColumns(hydraulicData, columnNames)
   
   # inform on gaps...
   
@@ -89,7 +90,7 @@ validateAndFillHydraulicData <- function(
     
   } else {
     
-    selectColumns(hydraulicEvents, c("tBeg", "tEnd"))
+    kwb.utils::selectColumns(hydraulicEvents, c("tBeg", "tEnd"))
   }
   
   hydraulicData <- kwb.base::hsFillUp(
@@ -132,8 +133,8 @@ validateAndFillHydraulicData <- function(
     rowsToPredict <- indicesInIntervals(
       timestamps = hydraulicData$DateTime,
       intervals = .toIntervalList(
-        from = selectColumns(regressionUsage, "from"),
-        to = selectColumns(regressionUsage, "to")
+        from = kwb.utils::selectColumns(regressionUsage, "from"),
+        to = kwb.utils::selectColumns(regressionUsage, "to")
       )
     )
     
@@ -243,6 +244,8 @@ removeDuplicates <- function(
 #' @param columns names of columns containing Date and Time, water levels and 
 #'   water flows
 #' @param only.if.na logical. Not used!
+#' @importFrom lubridate %within%
+#' @export
 #' 
 getPredictionOfQ <- function(
   hydraulicData, regressionModels = NULL, modelDir, 
@@ -269,14 +272,14 @@ getPredictionOfQ <- function(
     }
     
     timeIntervals <- .toIntervalList(
-      from = selectColumns(regressionModels, intervalColumns[1]), 
-      to = selectColumns(regressionModels, intervalColumns[2]), 
+      from = kwb.utils::selectColumns(regressionModels, intervalColumns[1]), 
+      to = kwb.utils::selectColumns(regressionModels, intervalColumns[2]), 
       tzone = tzone
     )
     
-    times <- selectColumns(hydraulicData, columns["DateTime"])
-    Qraw  <- selectColumns(hydraulicData, columns["Q.raw"])
-    H     <- selectColumns(hydraulicData, columns["H"])
+    times <- kwb.utils::selectColumns(hydraulicData, columns["DateTime"])
+    Qraw  <- kwb.utils::selectColumns(hydraulicData, columns["Q.raw"])
+    H     <- kwb.utils::selectColumns(hydraulicData, columns["H"])
       
     for (i in seq_len(length.out = nrow(regressionModels))) {
       
@@ -491,7 +494,7 @@ getSignalColumn <- function(
   } else {
     
     # Copy the Q values at the indices belonging to events
-    Q <- selectColumns(hydraulicData, columnQ)
+    Q <- kwb.utils::selectColumns(hydraulicData, columnQ)
     signals[indices] <- Q[indices]
   }  
   
@@ -506,13 +509,14 @@ getSignalColumn <- function(
 #' @param intervals vector of Interval objects as returned by
 #'   lubridate::interval, passed to \code{\link{indicesInIntervals}}
 #' @param dateTimeColumn name of date and time column in \code{dataFrame}
-#' 
+#' @export
+#' @importFrom kwb.utils selectColumns
 removeIntervals <- function(
   dataFrame, intervals,
   dateTimeColumn = names(kwb.utils::posixColumnAtPosition(dataFrame))[1]
 ) 
 {
-  times <- selectColumns(dataFrame, dateTimeColumn)
+  times <- kwb.utils::selectColumns(dataFrame, dateTimeColumn)
   
   indices <- indicesInIntervals(times, intervals)
   

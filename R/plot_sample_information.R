@@ -20,11 +20,12 @@
 #'   calculate an y coordinate
 #' @param plotSamplingPoints = logical. If \code{TRUE} 
 #'   \code{\link{addSampleTimesToPlot}} is called
-#' 
+#' @importFrom kwb.datetime toUTC
+#' @export 
 plotSampleInformation <- function(
   sampleInformation,
   add = FALSE,
-  xlim = toUTC(range(c(
+  xlim = kwb.datetime::toUTC(range(c(
     sampleInformation$samplingEvents$tBeg, 
     sampleInformation$samplingEvents$tEnd
   ))),
@@ -120,7 +121,8 @@ plotSampleInformation <- function(
 #' @param showBottleNumbers default: FALSE
 #' @param legendPosition character string specifying the legend position,
 #'   e.g. "bottom", "[top|bottom]left", "top", "[top|bottom]right"
-#' 
+#' @importFrom kwb.datetime hsToPosix
+#' @export 
 addSampleTimesToPlot <- function(
   sampleTimes, ymax, timeFormat = default_day_time_format(), cex.text = 0.7, 
   showArrows = FALSE, showTimes = FALSE, showBottleNumbers = FALSE, 

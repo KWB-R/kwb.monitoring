@@ -4,20 +4,12 @@
 [![Project Status](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/kwb.monitoring)]()
 
-# kwb.monitoring
-
 Functions used within different KWB projects dealing with 
 monitoring data.
 
 ## Installation
 
-```r
+```{r echo = TRUE, eval = FALSE}
 #install.packages("remotes", repos = "https://cloud.r-project.org")
 remotes::install_github("KWB-R/kwb.monitoring")
 ```
-
-## Documentation
-
-Release: [https://kwb-r.github.io/kwb.monitoring](https://kwb-r.github.io/kwb.monitoring)
-
-Development: [https://kwb-r.github.io/kwb.monitoring/dev](https://kwb-r.github.io/kwb.monitoring/dev)

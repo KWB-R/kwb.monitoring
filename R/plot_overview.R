@@ -9,7 +9,7 @@
 #' @param to.pdf if \code{TRUE}, graphical output goes to a temporary pdf file
 #' @param save.pdf if \code{TRUE} PDF output is stored to a file stored and 
 #'   named according to \code{dictionary$OVERVIEW_HQ_DATA_PDF}
-#' 
+#' @export
 showOverview <- function(
   dat, settings, Qmax = NULL, Hmax = NULL, to.pdf = FALSE, save.pdf = FALSE
 )
@@ -201,7 +201,8 @@ max_value_to_limit <- function(maxValue)
 #' @param dataFrame data frame with columns \emph{day}, \emph{parName},
 #'   \emph{parVal}
 #' @param parameterName name of parameter, default: \code{"Q"}
-#' 
+#' @export 
+#' @importFrom kwb.datetime hsToPosix
 addFakeEntriesForDaysWithoutData <- function(dataFrame, parameterName = "Q")
 {
   allDays <- unique(dataFrame$day)
