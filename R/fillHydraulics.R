@@ -1,19 +1,13 @@
 # fill hydraulics with saved rating curve file
 fillHydraulics <- function(
-  hydraulics, raw,
-  rainData, rainScale, rainGauge,
-  QmessZeroToNA,
-  modelFile,
-  tBeg, tEnd, dtPlot,
-  Hgaps,
-  hKrit, hKritMin,
-  hSamplerOn, hSamplerOff,
-  makePlot,
+  hydraulics, raw, rainData, rainScale, rainGauge, QmessZeroToNA, modelFile,
+  tBeg, tEnd, dtPlot, Hgaps, hKrit, hKritMin, hSamplerOn, hSamplerOff, makePlot,
   ratingCurveDir
 )
 {
   # format time stamps
   {
+    # Define helper function
     as_posix <- function(x) {
       as.POSIXct(x, format = "%Y-%m-%d %H:%M", tz = "Etc/GMT-1")
     }
@@ -38,7 +32,8 @@ fillHydraulics <- function(
     rainSel <- rainData[times >= tBeg & times <= tEnd, ]
   }
   
-  # if we are working with validated data, temporarily change column names for H and Q to Hcorr and Qcorr
+  # if we are working with validated data, temporarily change column names for H 
+  # and Q to Hcorr and Qcorr
   {
     names(hydraulicEvent)[c(3, 5)] <- c("H", "Q")
   }
@@ -47,13 +42,10 @@ fillHydraulics <- function(
   {
     fullH <- kwb.utils::selectColumns(hydraulicEvent, c("dateTime", "H"))
     
-    fullH     <- fullH[stats::complete.cases(fullH), ]
+    fullH <- fullH[stats::complete.cases(fullH), ]
     
-    filledH   <- stats::approx(
-      x = fullH$dateTime,
-      y = fullH$H,
-      xout = hydraulicEvent$dateTime,
-      rule = 2
+    filledH <- stats::approx(
+      x = fullH$dateTime, y = fullH$H, xout = hydraulicEvent$dateTime, rule = 2
     )
     
     filledH$y -> hydraulicEvent$Hfilled
@@ -84,6 +76,7 @@ fillHydraulics <- function(
       a1 <- modPar[1]
       b1 <- modPar[2]
       c1 <- modPar[3]
+      
       HQzero <- modPar[4]
     }
   }
@@ -128,8 +121,8 @@ fillHydraulics <- function(
     # if there are NAs for Qpred below a certain H threshold:
     xNA <- which(hydraulicEvent$Hfilled>HQzero)
     
-    if(length(xNA) > 0)
-    {
+    if (length(xNA) > 0) {
+      
       # grab the minimum water level with existing Qpred that is larger than HQzero
       Qpred <- kwb.utils::selectColumns(hydraulicEvent, "Qpred")
       Hfilled <- kwb.utils::selectColumns(hydraulicEvent, "Hfilled")
@@ -164,8 +157,8 @@ fillHydraulics <- function(
     hydraulicEvent$Qfilled <- NA
     
     # make dubious Q=0 measurements to NA
-    if(QmessZeroToNA) {
-      hydraulicEvent$QmessPCM[hydraulicEvent$QmessPCM<=0] <- NA
+    if (QmessZeroToNA) {
+      hydraulicEvent$QmessPCM[hydraulicEvent$QmessPCM <= 0] <- NA
     }
     
     # combine measured and predicted Q values: wherever Qmeasured is not available
@@ -180,44 +173,75 @@ fillHydraulics <- function(
   # plot filled hydraulic event
   {
     if (makePlot) {
+  
+      maxQ <- 1.2 * max(hydraulicEvent$Qfilled, na.rm = TRUE)
+      maxH <- 1.2 * max(hydraulicEvent$H, na.rm = TRUE)
+
+      graphics::par(mar = c(4, 4, 0.2, 3), mfcol = c(2, 1))
       
-      maxQ <- max(hydraulicEvent$Qfilled, na.rm=TRUE) + 0.2*max(hydraulicEvent$Qfilled, na.rm=TRUE)
-      maxH <- max(hydraulicEvent$H, na.rm=TRUE) + 0.2*max(hydraulicEvent$H, na.rm=TRUE)
+      graphics::plot(
+        hydraulicEvent$dateTime, hydraulicEvent$QmessPCM, xlim = c(tBeg, tEnd), 
+        ylim = c(0, maxQ), xaxt = "n", las = 2, ylab = "Q [l/s]", xlab = ""
+      )
       
-      graphics::par(mar=c(4,4,0.2,3), mfcol=c(2,1))
-      graphics::plot(hydraulicEvent$dateTime, hydraulicEvent$QmessPCM,
-           xlim=c(tBeg, tEnd), ylim=c(0, maxQ),
-           xaxt="n", las=2,
-           ylab="Q [l/s]", xlab="")
-      addRain(raindat=rainSel, ymax=maxQ, scale=rainScale, color="grey", rainGauge)
-      graphics::points(hydraulicEvent$dateTime, hydraulicEvent$QcompPCM, col="grey")
-      graphics::lines(hydraulicEvent$dateTime, hydraulicEvent$Qfilled, col="red", lwd=2)
-      graphics::axis(1, at=tax, lab=format(tax, format="%m-%d\n%H:%M"), 
-           padj=.1, cex.axis=1, las=2)
-      graphics::abline(h=0, col="grey")
-      graphics::legend(x=tEnd - (tEnd-tBeg)*0.20,
-             y=0.99*maxQ,
-             legend=c("QmessPCM", "QcompPCM", "QFilled"),
-             pch=c(1, 1, NA),
-             lty=c(NA, NA, 1),
-             col=c("black", "grey", "red"))
-      graphics::plot(hydraulicEvent$dateTime, hydraulicEvent$H, 
-           xlim=c(tBeg, tEnd), ylim=c(0, maxH),
-           xaxt="n", las=2,
-           ylab="H [m]", xlab="")
-      graphics::lines(hydraulicEvent$dateTime, hydraulicEvent$Hfilled, col="red", lwd=2)
-      hKritLine <- seq(tBeg-3600, tEnd+3600, by=500)
-      graphics::points(x=hKritLine, y=rep(hKrit, times=length(hKritLine)), pch=20, col="blue", type="p", cex=0.75)
-      graphics::abline(h=hKritMin, lty=1, col="blue")
-      graphics::abline(h=c(hSamplerOn, hSamplerOff), lty=c(2, 3))
-      graphics::abline(h=0, col="grey")
+      addRain(
+        raindat = rainSel, ymax = maxQ, scale = rainScale, color = "grey", 
+        rainGauge
+      )
+      
+      graphics::points(
+        hydraulicEvent$dateTime, hydraulicEvent$QcompPCM, col = "grey"
+      )
+      
+      graphics::lines(
+        hydraulicEvent$dateTime, hydraulicEvent$Qfilled, col = "red", lwd = 2
+      )
+      
+      graphics::axis(
+        1, at = tax, lab = format(tax, format = "%m-%d\n%H:%M"), padj = 0.1, 
+        cex.axis = 1, las = 2
+      )
+      
+      graphics::abline(h = 0, col = "grey")
+      
+      graphics::legend(
+        x = tEnd - (tEnd - tBeg) * 0.20, y = 0.99 * maxQ, 
+        legend = c("QmessPCM", "QcompPCM", "QFilled"), pch = c(1, 1, NA), 
+        lty = c(NA, NA, 1), col = c("black", "grey", "red")
+      )
+      
+      graphics::plot(
+        hydraulicEvent$dateTime, hydraulicEvent$H, xlim = c(tBeg, tEnd), 
+        ylim = c(0, maxH), xaxt = "n", las = 2, ylab = "H [m]", xlab = ""
+      )
+      
+      graphics::lines(
+        hydraulicEvent$dateTime, hydraulicEvent$Hfilled, col = "red", lwd = 2
+      )
+      
+      hKritLine <- seq(tBeg - 3600, tEnd + 3600, by = 500)
+      
+      graphics::points(
+        x = hKritLine, y = rep(hKrit, times = length(hKritLine)), pch = 20, 
+        col = "blue", type = "p", cex = 0.75
+      )
+      
+      graphics::abline(h = hKritMin, lty = 1, col = "blue")
+      
+      graphics::abline(h = c(hSamplerOn, hSamplerOff), lty = c(2, 3))
+      
+      graphics::abline(h = 0, col = "grey")
+      
       #legend(x=tEnd - (tEnd-tBeg)*0.20, y=maxH,
       #       legend=c("HmessPCM", "Hfilled", "hKrit", "hKritMin", "hSamplerOn", "hSamplerOff"),
       #       pch=c(    1,          NA,        20,     NA,          NA,           NA),
       #       lty=c(    NA,         1,         NA,     1,           2,            3),
       #       col=c(    "black",    "red",    "blue",  "blue",     "black",      "black"    ))
-      graphics::axis(1, at=tax, lab=format(tax, format="%m-%d\n%H:%M"), 
-           padj=.1, cex.axis=1, las=2)
+      
+      graphics::axis(
+        1, at = tax, lab = format(tax, format = "%m-%d\n%H:%M"), padj = 0.1, 
+        cex.axis = 1, las = 2
+      )
     }
   }
   
@@ -228,6 +252,5 @@ fillHydraulics <- function(
     }
   }
   
-  return(hydraulicEvent)
+  hydraulicEvent
 }
-
