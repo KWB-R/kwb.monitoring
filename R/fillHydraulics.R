@@ -29,8 +29,7 @@ fillHydraulics <- function(
     times <- kwb.utils::selectColumns(hydraulics, "dateTime")
     hydraulicEvent <- hydraulics[times >= tBeg & times <= tEnd, ]
     
-    if(!is.na(Hgaps))
-    {
+    if (! is.na(Hgaps)) {
       hydraulicEvent$H[is.na(hydraulicEvent$H)] <- Hgaps
     }
     
@@ -41,18 +40,22 @@ fillHydraulics <- function(
   
   # if we are working with validated data, temporarily change column names for H and Q to Hcorr and Qcorr
   {
-    c("H", "Q") -> names(hydraulicEvent)[c(3, 5)]  
+    names(hydraulicEvent)[c(3, 5)] <- c("H", "Q")
   }
   
   # fill H through linear interpolation (here I assume only very small gaps in H)
   {
-    fullH     <- data.frame(dateTime=hydraulicEvent$dateTime,
-                            H=hydraulicEvent$H)
+    fullH <- kwb.utils::selectColumns(hydraulicEvent, c("dateTime", "H"))
+    
     fullH     <- fullH[stats::complete.cases(fullH), ]
-    filledH   <- stats::approx(x=fullH$dateTime,
-                        y=fullH$H,
-                        xout=hydraulicEvent$dateTime,
-                        rule=2)
+    
+    filledH   <- stats::approx(
+      x = fullH$dateTime,
+      y = fullH$H,
+      xout = hydraulicEvent$dateTime,
+      rule = 2
+    )
+    
     filledH$y -> hydraulicEvent$Hfilled
   }
   
@@ -62,42 +65,60 @@ fillHydraulics <- function(
     
     modPar <- scan(file=inFile)
     
-    if(length(modPar) == 8)
-    {
-      a1=modPar[1];     b1=modPar[2];    c1=modPar[3]
-      a2=modPar[4];     b2=modPar[5];    c2=modPar[6]
-      breakh=modPar[7]; HQzero=modPar[8]
+    if (length(modPar) == 8) {
+      
+      a1 <- modPar[1]
+      b1 <- modPar[2]
+      c1 <- modPar[3]
+      
+      a2 <- modPar[4]
+      b2 <- modPar[5]
+      c2 <- modPar[6]
+      
+      breakh <- modPar[7]
+      HQzero <- modPar[8]
       
     } else {
       
       # res1$par, HQzero
-      a1=modPar[1]; b1=modPar[2]; c1=modPar[3]; HQzero=modPar[4]
+      a1 <- modPar[1]
+      b1 <- modPar[2]
+      c1 <- modPar[3]
+      HQzero <- modPar[4]
     }
   }
   
   # make predicted Q time series using rating curve. as above, H is converted from m 
   # to cm, since this is how the model is implemented above
   {
-    NA -> hydraulicEvent$Qpred
+    f <- function(a, b, c, d) {
+      a * (b * 100 + c)^d
+    }
+    
+    hydraulicEvent$Qpred <- NA
     
     # use fitted model to predict Q
-    if(length(modPar)==8)
-    {
-      Hpred <- hydraulicEvent$Hfilled[hydraulicEvent$Hfilled < breakh]
+    if (length(modPar) == 8) {
       
-      hydraulicEvent$Qpred[hydraulicEvent$Hfilled < breakh] <- 
-        modPar[1]*(Hpred*100 + modPar[2])^modPar[3]
+      Hpred <- hydraulicEvent$Hfilled[hydraulicEvent$Hfilled < breakh]
+
+      hydraulicEvent$Qpred[hydraulicEvent$Hfilled < breakh] <- f(
+        a = modPar[1], b = Hpred, c = modPar[2], d = modPar[3]
+      )
       
       Hpred <- hydraulicEvent$Hfilled[hydraulicEvent$Hfilled >= breakh]
       
-      hydraulicEvent$Qpred[hydraulicEvent$Hfilled >= breakh] <- 
-        modPar[4]*(Hpred*100 + modPar[5])^modPar[6]
+      hydraulicEvent$Qpred[hydraulicEvent$Hfilled >= breakh] <- f(
+        a = modPar[4], b = Hpred, c = modPar[5], d = modPar[6]
+      )
       
     } else {
       
       Hpred <- hydraulicEvent$Hfilled
       
-      hydraulicEvent$Qpred <- modPar[1]*(Hpred*100 + modPar[2])^modPar[3]
+      hydraulicEvent$Qpred <- f(
+        a = modPar[1], b = Hpred, c = modPar[2], d = modPar[3]
+      )
     }
     
     # Q=0 below HQzero
@@ -121,9 +142,9 @@ fillHydraulics <- function(
       
       H0 <- HQzero
       H1 <- HminQnotNA2$Hfilled[1]
-      Q0     <- 0
-      Q1     <- HminQnotNA2$Qpred[1]
-      mm     <- (Q1 - Q0)/(H1 - H0)
+      Q0 <- 0
+      Q1 <- HminQnotNA2$Qpred[1]
+      mm <- (Q1 - Q0) / (H1 - H0)
       
       index <- which(is.na(hydraulicEvent$Qpred))
       
@@ -131,11 +152,11 @@ fillHydraulics <- function(
     }
     
     # separate actual measured discharges from those computed by the PCM
-    NA      -> hydraulicEvent$QcompPCM
+    hydraulicEvent$QcompPCM <- NA
     indices <- which(hydraulicEvent$H <= hKritMin)
     hydraulicEvent$QcompPCM[indices] <- hydraulicEvent$Q[indices]
     
-    NA      -> hydraulicEvent$QmessPCM
+    hydraulicEvent$QmessPCM <- NA
     indices <- which(hydraulicEvent$H > hKritMin)
     hydraulicEvent$QmessPCM[indices] <- hydraulicEvent$Q[indices]
     
@@ -143,24 +164,25 @@ fillHydraulics <- function(
     hydraulicEvent$Qfilled <- NA
     
     # make dubious Q=0 measurements to NA
-    if(QmessZeroToNA)
-    {
+    if(QmessZeroToNA) {
       hydraulicEvent$QmessPCM[hydraulicEvent$QmessPCM<=0] <- NA
     }
     
     # combine measured and predicted Q values: wherever Qmeasured is not available
     # Qfilled=Qpredicted, otherwise Q=Qmeasured
-    hydraulicEvent$Qfilled <- ifelse(is.na(hydraulicEvent$QmessPCM),
-                                     hydraulicEvent$Qpred, 
-                                     hydraulicEvent$QmessPCM)
+    hydraulicEvent$Qfilled <- ifelse(
+      is.na(hydraulicEvent$QmessPCM),
+      hydraulicEvent$Qpred, 
+      hydraulicEvent$QmessPCM
+    )
   }
   
   # plot filled hydraulic event
   {
-    if(makePlot==TRUE)
-    {
-      maxQ           <- max(hydraulicEvent$Qfilled, na.rm=TRUE) + 0.2*max(hydraulicEvent$Qfilled, na.rm=TRUE)
-      maxH           <- max(hydraulicEvent$H, na.rm=TRUE) + 0.2*max(hydraulicEvent$H, na.rm=TRUE)
+    if (makePlot) {
+      
+      maxQ <- max(hydraulicEvent$Qfilled, na.rm=TRUE) + 0.2*max(hydraulicEvent$Qfilled, na.rm=TRUE)
+      maxH <- max(hydraulicEvent$H, na.rm=TRUE) + 0.2*max(hydraulicEvent$H, na.rm=TRUE)
       
       graphics::par(mar=c(4,4,0.2,3), mfcol=c(2,1))
       graphics::plot(hydraulicEvent$dateTime, hydraulicEvent$QmessPCM,
@@ -201,7 +223,9 @@ fillHydraulics <- function(
   
   # if we are working with validated data, undo changes in column names made at the begginning
   {
-    if(!raw){c("Hcorr", "Qcorr") -> names(hydraulicEvent)[c(3, 5)]}   
+    if (! raw) {
+      names(hydraulicEvent)[c(3, 5)] <- c("Hcorr", "Qcorr")
+    }
   }
   
   return(hydraulicEvent)
