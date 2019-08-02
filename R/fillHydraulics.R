@@ -14,9 +14,14 @@ fillHydraulics <- function(
 {
   # format time stamps
   {
-    tBeg <- as.POSIXct(tBeg, format="%Y-%m-%d %H:%M", tz="Etc/GMT-1")
-    tEnd <- as.POSIXct(tEnd, format="%Y-%m-%d %H:%M", tz="Etc/GMT-1")
-    tax  <- seq(tBeg, tEnd, by=dtPlot)
+    as_posix <- function(x) {
+      as.POSIXct(x, format = "%Y-%m-%d %H:%M", tz = "Etc/GMT-1")
+    }
+    
+    tBeg <- as_posix(tBeg)
+    tEnd <- as_posix(tEnd)
+    
+    tax  <- seq(tBeg, tEnd, by = dtPlot)
   }
   
   # grab only event data and fill H gaps with user-defined data
