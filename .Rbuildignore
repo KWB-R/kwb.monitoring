@@ -4,9 +4,9 @@
 ^appveyor\.yml$
 ^codecov\.yml$
 ^README\.md$
-^index\.Rmd$
+^index\.md$
 ^docs\.*
 _pkgdown.yaml
 LICENSE\.md$
 .gitlab-ci.yml
-^.travis\.yml$
+^\.travis\.yml$
