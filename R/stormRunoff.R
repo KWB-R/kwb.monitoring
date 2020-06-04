@@ -12,7 +12,7 @@ library(lubridate)
 library(readxl)
 library(fitdistrplus)
 
-# read roof runoff
+# read roof runoff.
 readRoof <- function(site)
 {
   # read available files
