@@ -285,94 +285,6 @@ computeVol <- function(dischargeData, Qcolumn, tBeg, tEnd)
 }
 
 
-
-# read Genommene_Proben and make specific runoff for facades
-specQfacade <- function(site)
-{
-  # grab and format data
-  {
-    setwd("Y:/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/")
-    
-    xlsfile <- paste0(getwd(), "/Genommene_Proben_Fassaden_BaSaR.xlsx")
-    xls     <- read_excel(xlsfile, sheet=site, col_types="text", skip=2, na=c("na"), trim_ws=TRUE)
-    
-    xls$tBegRain          <- as.POSIXct(xls$tBegRain, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-    xls$tEndRain          <- as.POSIXct(xls$tEndRain, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-    xls$Regenh?he_mm      <- as.numeric(xls$Regenh?he_mm)
-    xls$Fl?cheRinneN_m2   <- as.numeric(xls$Fl?cheRinneN_m2)
-    xls$Fl?cheRinneW_m2   <- as.numeric(xls$Fl?cheRinneW_m2)
-    xls$Fl?cheRinneS_m2   <- as.numeric(xls$Fl?cheRinneS_m2)
-    xls$Fl?cheRinneO_m2   <- as.numeric(xls$Fl?cheRinneO_m2)
-  }
-  
-  # make numeric volumes and account for ">"      
-  {
-    xls$fullN <- NA
-    xls$fullS <- NA
-    xls$fullO <- NA
-    xls$fullW <- NA
-    
-    # North
-    vsplt <- strsplit(xls$Volumen_N_ml, split=">")
-    for(i in 1:length(vsplt))
-    {
-      xls$Volumen_N_ml[i]      <- ifelse(length(vsplt[[i]]) > 1,
-                                         vsplt[[i]][2],
-                                         vsplt[[i]][1])
-      
-      xls$fullN[i] <- ifelse(length(vsplt[[i]]) > 1, 1, 0)
-    }
-    
-    # West
-    vsplt <- strsplit(xls$Volumen_W_ml, split=">")
-    for(i in 1:length(vsplt))
-    {
-      xls$Volumen_W_ml[i]      <- ifelse(length(vsplt[[i]]) > 1,
-                                         vsplt[[i]][2],
-                                         vsplt[[i]][1])
-      
-      xls$fullW[i] <- ifelse(length(vsplt[[i]]) > 1, 1, 0)
-    }
-    
-    # East
-    vsplt <- strsplit(xls$Volumen_O_ml, split=">")
-    for(i in 1:length(vsplt))
-    {
-      xls$Volumen_O_ml[i]      <- ifelse(length(vsplt[[i]]) > 1,
-                                         vsplt[[i]][2],
-                                         vsplt[[i]][1])
-      
-      xls$fullO[i] <- ifelse(length(vsplt[[i]]) > 1, 1, 0)
-    }
-    
-    # South
-    vsplt <- strsplit(xls$Volumen_S_ml, split=">")
-    for(i in 1:length(vsplt))
-    {
-      xls$Volumen_S_ml[i]      <- ifelse(length(vsplt[[i]]) > 1,
-                                         vsplt[[i]][2],
-                                         vsplt[[i]][1])
-      
-      xls$fullS[i] <- ifelse(length(vsplt[[i]]) > 1, 1, 0)
-    }
-    
-    xls$Volumen_S_ml <- as.numeric(xls$Volumen_S_ml)
-    xls$Volumen_N_ml <- as.numeric(xls$Volumen_N_ml)
-    xls$Volumen_W_ml <- as.numeric(xls$Volumen_W_ml)
-    xls$Volumen_O_ml <- as.numeric(xls$Volumen_O_ml)
-  }
-  
-  # build specific Q in l/m2
-  {
-    xls$specQN <- xls$Volumen_N_ml/xls$Fl?cheRinneN_m2/1000
-    xls$specQO <- xls$Volumen_O_ml/xls$Fl?cheRinneO_m2/1000
-    xls$specQS <- xls$Volumen_S_ml/xls$Fl?cheRinneS_m2/1000
-    xls$specQW <- xls$Volumen_W_ml/xls$Fl?cheRinneW_m2/1000
-  }
-  
-  return(xls)  
-}
-
 # read Genommene_Proben and make specific runoff for roof
 specQroof <- function(site)
 {
@@ -396,32 +308,6 @@ specQroof <- function(site)
   
   # build specific Q
   xls$specQ <- xls$Abflussvol_l/roofArea
-  
-  return(xls)  
-}
-
-# read Genommene_Proben and make specific runoff for storm sewer
-specQsite <- function(site)
-{
-  # grab and format data
-  setwd("Y:/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/")
-  
-  xlsfile <- paste0(getwd(), "/Genommene_Proben_Abfluss_BaSaR.xlsx")
-  xls     <- read_excel(xlsfile, sheet=site, col_types="text", skip=2, na=c("na"), trim_ws=TRUE)
-  
-  xls$tBegRain          <- as.POSIXct(xls$tBegRain, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-  xls$tEndRain          <- as.POSIXct(xls$tEndRain, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-  xls$Regenh?he_mm      <- as.numeric(xls$Regenh?he_mm)
-  xls$Anzahl_Ereignisse <- as.numeric(xls$Anzahl_Ereignisse)
-  xls$tBegHydraul       <- as.POSIXct(xls$tBegHydraul, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-  xls$tEndHydraul       <- as.POSIXct(xls$tEndHydraul, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-  xls$Abflussvol_l      <- as.numeric(xls$Abflussvol_l)
-  
-  # site areas
-  siteArea <- ifelse(site=="BBW", 3950, 3300)
-  
-  # build specific Q
-  xls$specQ <- xls$Abflussvol_l/siteArea
   
   return(xls)  
 }

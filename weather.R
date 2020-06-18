@@ -414,210 +414,6 @@ updateRainDB <- function(tBeg, tEnd,
 }
 
 
-# make IDF curves based on rainfall time series; durations in sec, returnPeriods in years,
-# minimum value > 1 year
-# years must be in increasing order (not necessarily continuous)
-# dt = time step in rainfall data, miu0 and beta0 = initial values for parameter estimation in
-# gumbel distribution; don't use miu0=0 and/or beta0=0!
-makeIDF <- function(rain, gaugeName, durations, years, returnPeriods, dt,
-                    miu0, beta0)
-{
-  # run sliding window for each duration through time series and get maximum intensity
-  {
-    rain$year <- lubridate::year(rain[[1]])
-    hNdur     <- matrix(ncol=length(durations), nrow=length(years),
-                        dimnames=list(years, paste0(durations/60, "min")))
-    
-    for(i in 1:length(years)){
-      
-      for(j in 1:length(durations)){
-        
-        yeari       <- pull(filter(rain, year == years[i]), gaugeName)
-        xx          <- max(zoo::rollsum(x=yeari,
-                                        k=durations[j]/(dt),
-                                        fill=NA),
-                           na.rm=TRUE)
-        hNdur[i, j] <- xx
-      }
-    }
-  }
-  
-  # compute mean intensities for each duration (output in mm/hour)
-  {
-    iNdur     <- matrix(ncol=length(durations), nrow=length(years),
-                        dimnames=list(years, paste0(durations/60, "min")))
-    
-    for(j in 1:length(durations)) {iNdur[, j] <- hNdur[, j]/durations[j]*3600}
-  }
-  
-  # define gumbel
-  {
-    dgumbel <<- function(x, miu, beta) 1/beta*exp(-((x-miu)/beta + exp(-((x-miu)/beta))))
-    pgumbel <<- function(q, miu, beta) exp(-exp(-(q-miu)/beta))
-    qgumbel <<- function(p, miu, beta) miu - beta*log(-log(p))
-  }
-  
-  # make theoretical IDF distribution
-  {
-    IDFtable <- matrix(ncol=length(durations), nrow=length(returnPeriods),
-                       dimnames=list(paste0(returnPeriods, "years"),
-                                     paste0(durations/60, "min")))
-    
-    pexceed  <- 1/returnPeriods
-    
-    for(j in 1:length(durations))
-    {
-      xx            <- iNdur[, j]
-      fitgumbel     <- fitdist(xx, "gumbel", start=list(miu=miu0, beta=beta0))
-      miu           <- fitgumbel$estimate[1]
-      beta          <- fitgumbel$estimate[2]
-      iNi           <- qgumbel(1-pexceed, miu=miu, beta=beta)
-      IDFtable[, j] <- iNi
-    }
-  }
-  
-  output <- list(duration_hN=hNdur,
-                 duration_iN=iNdur,
-                 IDFtable=IDFtable)
-  return(output)
-}
-
-# make frequency analysis for rainfall, including homogeneity test
-# years must be in increasing order (not necessarily continuous)
-rainFreq <- function(rain, gaugeName, years, miu0, beta0)
-{
-  # make series of annual maxima
-  {
-    annualMax  <- matrix(nrow=length(years), ncol=2,
-                         dimnames=list(years, c("maxhN_mm", "Dur_min")))
-    
-    rain$year <- year(rain$From)
-    
-    for(i in 1:length(years))
-    {
-      # get events for year i
-      yeari   <- filter(rain, year == years[i])
-      eventsi <- getEvents(yeari, seriesName=gaugeName)
-      
-      # add statistics to events of year i
-      for (j in 1:nrow(eventsi))
-      {
-        rainSel       <-  rain[rain$From >= eventsi$tBeg[j] &
-                                 rain$From <= eventsi$tEnd[j], ]
-        eventsi$hN[j] <- sum(pull(rainSel, gaugeName), na.rm=TRUE)
-      }
-      
-      # find year's maximum hN and store in annualMax
-      maxi <- filter(eventsi, hN==max(hN))
-      annualMax[i, ] <- c(maxi$hN, maxi$dur/60)
-    }
-    annualMax <<- annualMax
-  }
-  
-  # homogeneity test: cumulative deviations from the mean (Buishand,  1982)
-  {
-    xi   <- annualMax[, 1]
-    xbar <- mean(xi)
-    sk   <- rep(0, times=length(xi)+1)
-    s    <- sd(xi)
-    n    <- length(sk)-1
-    
-    for(i in 2:length(xi)) {sk[i] <- sk[i-1] + xi[i] - xbar}
-    
-    Q          <- max(sk/s)
-    testTableQ <- data.frame(n=c(10, 20, 30, 40, 50, 100),
-                             Q_sqrt_n_90=c(1.05, 1.1, 1.12, 1.13, 1.14, 1.17),
-                             Q_sqrt_n_95=c(1.14, 1.22, 1.24, 1.26, 1.27, 1.29),
-                             Q_sqrt_n_99=c(1.29, 1.42, 1.46, 1.5, 1.52, 1.55))
-    Q90        <- approx(x=testTableQ$n, y=testTableQ$Q_sqrt_n_90, xout=n)$y*sqrt(n)
-    Q95        <- approx(x=testTableQ$n, y=testTableQ$Q_sqrt_n_95, xout=n)$y*sqrt(n)
-    Q99        <- approx(x=testTableQ$n, y=testTableQ$Q_sqrt_n_99, xout=n)$y*sqrt(n)
-  }
-  
-  # define gumbel
-  {
-    dgumbel <<- function(x, miu, beta) 1/beta*exp(-((x-miu)/beta + exp(-((x-miu)/beta))))
-    pgumbel <<- function(q, miu, beta) exp(-exp(-(q-miu)/beta))
-    qgumbel <<- function(p, miu, beta) miu - beta*log(-log(p))
-  }
-  
-  # fit gumbel
-  {
-    xx        <- annualMax[, 1]
-    fitgumbel <- fitdist(xx, "gumbel", start=list(miu=miu0, beta=beta0))
-    miu       <- fitgumbel$estimate[1]
-    beta      <- fitgumbel$estimate[2]
-    miuse     <- fitgumbel$sd[1]
-    betase    <- fitgumbel$sd[2]
-    gofit     <- gofstat(fitgumbel)
-  }
-  
-  # print gumbel parameters
-  {
-    print(paste0("miu = ", round(miu, digits=2),
-                 ", se= ", round(miuse, digits=2)),
-          quote=FALSE)
-    print(paste0("beta = ", round(beta, digits=2),
-                 ", se = ", round(betase, digits=2)),
-          quote=FALSE)
-    print(paste0("p-value chi-squared = ",
-                 round(gofit$chisqpvalue, digits=2)),
-          quote=FALSE)
-  }
-  
-  # plot annual max hN vs. return period and homogeneity test
-  {
-    par(mfcol=c(1,2))
-    
-    xx <- sort(annualMax[, 1])
-    Fx <- (1:length(xx))/(1 + length(xx))
-    xpred <- seq(0, 200, by=.1)
-    plot(xx, 1/(1-Fx), ylab="T [years]",
-         xlab=expression(paste("Annual. max. ", h[N], " [mm]")),
-         ylim=c(0, length(years)),
-         xlim=c(0, max(xx)),
-         main="Event depth vs. Return Period")
-    for(i in 1:500)
-    {
-      miui  <- runif(n=1, min=miu - miuse, miu + miuse)
-      betai <- runif(n=1, min=beta - betase, beta + betase)
-      lines(xpred, 1/(1-pgumbel(xpred, miu=miui, beta=betai)), col="grey")
-    }
-    lines(xpred, 1/(1-pgumbel(xpred, miu=miu, beta=beta)))
-    points(xx, 1/(1-Fx), pch=20, cex=2)
-    
-    plot(c(years[1]-1, years), c(0, sk[2:length(sk)]/s),
-         type="b", pch=20, cex=1.5,
-         ylim=c(-5, 5),
-         ylab="rescaled cumulative deviation",
-         xlab="years",
-         main="Q-Homogeneity test (Buishand,  1982)")
-    abline(h=0, col="red")
-    abline(h=c(Q90, Q95, Q99, -Q90, -Q95, -Q99), lty=c(1, 2, 3, 1, 2, 3))
-    legend(x=years[1]-1, y=5,
-           legend=c("90%", "95%", "99%"),
-           lty=c(1,2,3))
-  }
-  
-}
-
-# read BaSaR rainfall data base
-readRain <- function()
-{
-  # setwd("xxxxx")
-  setwd("c:/kwb/BaSaR/_Daten/RAW/_Regen")
-  rain <- read.table("rainDB.txt",
-                     sep=";",
-                     header=TRUE,
-                     encoding="UTF-8",
-                     colClasses=c("character", rep("numeric", times=7)))
-  
-  rain$dateTime <- as.POSIXct(rain$dateTime,
-                              format="%Y-%m-%d %H:%M",
-                              tz="Etc/GMT-1")
-  return(dplyr::tbl_df(rain))
-}
-
 # download temperature from DWD
 download_tempData <- function() #BBW=427; BBR=430
 {
@@ -1240,6 +1036,24 @@ checkRain <- function(rainDB, tBeg, tEnd, dt, diN)
     lines(rainSel$dateTime, rainSel$Joh, type="o", pch=20)
   }
 }
+
+# read BaSaR rainfall data base
+readRain <- function()
+{
+  # setwd("xxxxx")
+  setwd("c:/kwb/BaSaR/_Daten/RAW/_Regen")
+  rain <- read.table("rainDB.txt",
+                     sep=";",
+                     header=TRUE,
+                     encoding="UTF-8",
+                     colClasses=c("character", rep("numeric", times=7)))
+  
+  rain$dateTime <- as.POSIXct(rain$dateTime,
+                              format="%Y-%m-%d %H:%M",
+                              tz="Etc/GMT-1")
+  return(dplyr::tbl_df(rain))
+}
+
 
 # read wind data base
 readWind <- function()
