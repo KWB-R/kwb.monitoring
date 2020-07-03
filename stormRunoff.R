@@ -1,20 +1,8 @@
-library(dplyr)
-library(RCurl)
-library(curl)
-library(zoo)
-library(tidyr)
-library(stringr)
-library(kwb.base)
-library(ggplot2)
-library(gridExtra)
-library(ggpubr)
-library(lubridate)
-library(readxl)
-library(fitdistrplus)
-
 # read roof runoff.
 readTipbucket <- function(path, dateFormat, timeZone)
 {
+  require(dplyr)
+  
   # read available files
   setwd(path)
   avFiles <- list.files(path, pattern=".csv$")
@@ -181,6 +169,8 @@ computeLoads <- function(site,
                          detLimit,
                          outFile)
 {
+  require(readxl)
+  
   # make specific runoff for all points
   {
     specQf <- specQfacade(site=site)
