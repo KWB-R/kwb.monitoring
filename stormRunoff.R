@@ -13,14 +13,11 @@ library(readxl)
 library(fitdistrplus)
 
 # read roof runoff.
-readRoof <- function(site)
+readTipbucket <- function(path, dateFormat, timeZone)
 {
   # read available files
-  setwd(paste0("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/RAW/",
-               site, "/Roofdata/"))
-  
-  avFiles <- list.files(path=getwd(), pattern=".csv")
-  
+  setwd(path)
+  avFiles <- list.files(path, pattern=".csv$")
   avData  <- lapply(avFiles,
                     read.table,
                     header=FALSE,
@@ -29,12 +26,13 @@ readRoof <- function(site)
                     quote="\"",
                     dec=".",
                     colClasses=c("numeric", "character", "character"),
-                    col.names=c("id", "dateTime", "Q"))
+                    col.names=c("id", "dateTime", "Q"),
+                    stringsAsFactors=FALSE)
   
   names(avData) <- avFiles
   
   # make table with start and end dateTimes of each available data file
-  timeWindows <- tbl_df(as.data.frame(matrix(nrow=0, ncol=3)))
+  timeWindows <- dplyr::tbl_df(as.data.frame(matrix(nrow=0, ncol=3)))
   names(timeWindows) <- c("file", "start", "end")
   
   for(i in 1:length(avData)){
@@ -47,10 +45,10 @@ readRoof <- function(site)
   }
   
   timeWindows$file  <- as.character(timeWindows$file)
-  timeWindows$start <- as.POSIXct(timeWindows$start, tz="Etc/GMT-1",
-                                  format="%Y-%m-%d %H:%M:%S")
-  timeWindows$end <- as.POSIXct(timeWindows$end, tz="Etc/GMT-1",
-                                format="%Y-%m-%d %H:%M:%S")
+  timeWindows$start <- as.POSIXct(timeWindows$start, tz=timeZone,
+                                  format=dateFormat)
+  timeWindows$end <- as.POSIXct(timeWindows$end, tz=timeZone,
+                                format=dateFormat)
   
   # During the monitoring, it was necessary to adjust the logger's clock several times (the
   # clock drifted 1-2 min. per month more or less). Adjustment was made by making the logger
@@ -73,7 +71,8 @@ readRoof <- function(site)
                                      format="%Y-%m-%d %H:%M:%S",
                                      tz="Etc/GMT-1")
   
-  timeWindows$durations <- timeWindows$end - timeWindows$startDay
+  timeWindows$durations <- (as.numeric(timeWindows$end) - 
+    as.numeric(timeWindows$startDay))
   
   
   # identify which files are needed for covering full time period by grabbing the file
@@ -93,24 +92,32 @@ readRoof <- function(site)
   }
   
   # make single table using baseData
-  roofRunoff <-  do.call("rbind", avData[baseData])
-  roofRunoff <- tbl_df(roofRunoff[, 2:3])
+  runoffTimeSeries <-  do.call("rbind", avData[baseData])
+  runoffTimeSeries <- dplyr::tbl_df(runoffTimeSeries[, 2:3])
   
-  # format data
-  "Messbereich ?berschritten" -> roofRunoff$Q[roofRunoff$Q == "Messbereich ?berschritten"]
-  "Messbereich ?berschritten" -> roofRunoff$Q[roofRunoff$Q == "Messbereich ?berschritten"]
-  na                          <- roofRunoff$Q %in% "Messbereich ?berschritten"
-  roofRunoff$Q[na]            <- "-9999"
-  roofRunoff$Q                <- as.numeric(roofRunoff$Q)
-  roofRunoff$Q[na]            <- NA_real_
-  roofRunoff$dateTime         <- as.POSIXct(roofRunoff$dateTime,
-                                            format="%Y-%m-%d %H:%M:%S",
-                                            tz="Etc/GMT-1")
+  # handle data points > measurement limit:
   
-  return(roofRunoff)
+  # find data points with non-digit characters
+  ndc <- which(!grepl(pattern='^[0123456789]+$', 
+                      x=runoffTimeSeries$Q))
+  if(length(ndc)>0){
+    runoffTimeSeries$Q[ndc] <- '-9999'
+  }
+  runoffTimeSeries$Q <- as.integer(runoffTimeSeries$Q)
+  runoffTimeSeries$Q[ndc] <- NA_integer_
+  
+  # format dateTime as posixct
+  runoffTimeSeries$dateTime <- as.POSIXct(runoffTimeSeries$dateTime,
+                                          format=dateFormat,
+                                          tz=timeZone)
+  
+  # return time series
+  return(runoffTimeSeries)
 }
 
 # plot roof event
+# *****************switch for which one to plot, or both together
+# *****************adjust names -> not 'roof'
 plotRoofEvent <- function(site, tBeg, tEnd, roofData, rainData, rainGauge,
                           rainScale, dt, Qmax)
 {
@@ -149,124 +156,6 @@ plotRoofEvent <- function(site, tBeg, tEnd, roofData, rainData, rainGauge,
   text(x=tEnd-3600, y=Qmax-0.2*Qmax, eq, adj=1)
 }
 
-# function for estimating roof runoff volume from weather data. needed for events where discharge
-# capacity of Kippz?hler was surpassed or there were other problems (e.g., incorrect tipping)
-roofRegression <- function(site, rainData, tempData, hNpred, datePred, rainGauge)
-{
-  # grab, format and filter excel data
-  {
-    setwd("Y:/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/")
-    
-    xlsfile <- paste0(getwd(), "/Genommene_Proben_Dach_BaSaR.xlsx")
-    
-    xls  <- read_excel(xlsfile, sheet=site, col_types="text", skip=2, na=c("na", "nb"))
-    
-    xls$tBegRain          <- as.POSIXct(xls$tBegRain, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-    xls$tEndRain          <- as.POSIXct(xls$tEndRain, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-    xls$Regenh?he_mm      <- as.numeric(xls$Regenh?he_mm)
-    xls$Anzahl_Ereignisse <- as.numeric(xls$Anzahl_Ereignisse)
-    xls$tBegHydraul       <- as.POSIXct(xls$tBegHydraul, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-    xls$tEndHydraul       <- as.POSIXct(xls$tEndHydraul, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-    xls$Abflussvol_l      <- as.numeric(xls$Abflussvol_l)
-    xls$Abflussvol_aus_Regression <- as.logical(xls$Abflussvol_aus_Regression)
-    
-    xls2 <- dplyr::filter(xls, !is.na(Abflussvol_aus_Regression) & !Abflussvol_aus_Regression)
-  }
-  
-  # for site BBW, adjust rainfall depth for event on 07.01.2019 07:05, since it was sampled before
-  # it ended and was entered as such in Genommene_Proben_Dach. For the regression, it's better to
-  # use this than the interrupted event
-  {
-    if(site=="BBW")
-    {
-      tt   <- as.POSIXct("07.01.2019 07:05", format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-      29.3 -> xls2$Regenh?he_mm[xls2$tBegRain==tt]
-      4284 -> xls2$Abflussvol_l[xls2$tBegRain==tt]
-    }
-  }
-  
-  # add new column for holding temperature during pBefore
-  {
-    xls2$tempBefore <- rep(NA_real_, times=nrow(xls2))
-  }
-  
-  # compute mean temperature between end of last rainfall event and beginning
-  # of current event
-  {
-    for(i in 1:nrow(xls2))
-    {
-      # select rain gauge for the site
-      rainSel <- dplyr::select(rainData, dateTime, xls2$Regenschreiber[i])  
-      
-      # find time period between beginning of current rainfall event and end of last
-      tBeg       <- xls2$tBegRain[i]
-      rainBefore <- dplyr::filter(rainSel, dateTime < tBeg)
-      indexRain  <- which(rainBefore[[2]]>0)
-      rainBefore <- rainBefore[indexRain, ]
-      tEndPrev   <- max(rainBefore$dateTime)
-      
-      # select temperature data for current site and time period between tEndPrev and tBeg
-      tempSel <- dplyr::select(tempData, dateTime, ifelse(site=="BBR", "temperature_BBR", "temperature_BBW"))
-      tempSel <- dplyr::filter(tempSel, dateTime>=tEndPrev & dateTime < tBeg)
-      tempSel <- tempSel[[2]]
-      
-      # make statistics
-      xls2$tempBefore[i] <- mean(tempSel, na.rm=TRUE)
-    }
-  }
-  
-  # build regression model
-  {
-    mod <- lm(Abflussvol_l ~ Regenh?he_mm + tempBefore, data=xls2)
-  }
-  
-  # make prediction
-  {
-    # format datePred
-    datePred <- as.POSIXct(datePred, format="%Y-%m-%d %H:%M", tz="Etc/GMT-1")
-    
-    # select rain gauge for the site
-    rainSel <- dplyr::select(rainData, dateTime, rainGauge)
-    
-    # find time period between beginning of current rainfall event and end of last
-    tBeg       <- datePred
-    rainBefore <- dplyr::filter(rainSel, dateTime < tBeg)
-    indexRain  <- which(rainBefore[[2]]>0)
-    rainBefore <- rainBefore[indexRain, ]
-    tEndPrev   <- max(rainBefore$dateTime)
-    
-    # select temperature data for current site and time period between tEndPrev and tBeg
-    tempSel <- dplyr::select(tempData, dateTime, ifelse(site=="BBR", "temperature_BBR", "temperature_BBW"))
-    tempSel <- dplyr::filter(tempSel, dateTime>=tEndPrev & dateTime < tBeg)
-    tempSel <- tempSel[[2]]
-    
-    # make statistics
-    tempBefore <- mean(tempSel, na.rm=TRUE)    
-    
-    # predict
-    roofVpred <- predict(object=mod, newdata=data.frame(Regenh?he_mm=hNpred,
-                                                        tempBefore=tempBefore))
-  }
-  
-  # print result
-  {
-    cat("predicted roof runoff = ", roofVpred, " l\nmean Temp before = ", tempBefore)
-  }
-  
-  # make output
-  {
-    output <- list(model=mod,
-                   obsTable=tbl_df(data.frame(tBegRain=xls2$tBegRain,
-                                              tEndRain=xls2$tEndRain,
-                                              Regenh?he_mm=xls2$Regenh?he_mm,
-                                              Abflussvol_l=xls2$Abflussvol_l,
-                                              tempBefore=xls2$tempBefore)))
-  }
-  
-  return(output)
-}
-
-
 # compute runoff volume (Q data in l/s), times in dateTime as.POSIXct
 computeVol <- function(dischargeData, Qcolumn, tBeg, tEnd)
 {
@@ -285,154 +174,12 @@ computeVol <- function(dischargeData, Qcolumn, tBeg, tEnd)
 }
 
 
-
-# read Genommene_Proben and make specific runoff for facades
-specQfacade <- function(site)
-{
-  # grab and format data
-  {
-    setwd("Y:/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/")
-    
-    xlsfile <- paste0(getwd(), "/Genommene_Proben_Fassaden_BaSaR.xlsx")
-    xls     <- read_excel(xlsfile, sheet=site, col_types="text", skip=2, na=c("na"), trim_ws=TRUE)
-    
-    xls$tBegRain          <- as.POSIXct(xls$tBegRain, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-    xls$tEndRain          <- as.POSIXct(xls$tEndRain, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-    xls$Regenh?he_mm      <- as.numeric(xls$Regenh?he_mm)
-    xls$Fl?cheRinneN_m2   <- as.numeric(xls$Fl?cheRinneN_m2)
-    xls$Fl?cheRinneW_m2   <- as.numeric(xls$Fl?cheRinneW_m2)
-    xls$Fl?cheRinneS_m2   <- as.numeric(xls$Fl?cheRinneS_m2)
-    xls$Fl?cheRinneO_m2   <- as.numeric(xls$Fl?cheRinneO_m2)
-  }
-  
-  # make numeric volumes and account for ">"      
-  {
-    xls$fullN <- NA
-    xls$fullS <- NA
-    xls$fullO <- NA
-    xls$fullW <- NA
-    
-    # North
-    vsplt <- strsplit(xls$Volumen_N_ml, split=">")
-    for(i in 1:length(vsplt))
-    {
-      xls$Volumen_N_ml[i]      <- ifelse(length(vsplt[[i]]) > 1,
-                                         vsplt[[i]][2],
-                                         vsplt[[i]][1])
-      
-      xls$fullN[i] <- ifelse(length(vsplt[[i]]) > 1, 1, 0)
-    }
-    
-    # West
-    vsplt <- strsplit(xls$Volumen_W_ml, split=">")
-    for(i in 1:length(vsplt))
-    {
-      xls$Volumen_W_ml[i]      <- ifelse(length(vsplt[[i]]) > 1,
-                                         vsplt[[i]][2],
-                                         vsplt[[i]][1])
-      
-      xls$fullW[i] <- ifelse(length(vsplt[[i]]) > 1, 1, 0)
-    }
-    
-    # East
-    vsplt <- strsplit(xls$Volumen_O_ml, split=">")
-    for(i in 1:length(vsplt))
-    {
-      xls$Volumen_O_ml[i]      <- ifelse(length(vsplt[[i]]) > 1,
-                                         vsplt[[i]][2],
-                                         vsplt[[i]][1])
-      
-      xls$fullO[i] <- ifelse(length(vsplt[[i]]) > 1, 1, 0)
-    }
-    
-    # South
-    vsplt <- strsplit(xls$Volumen_S_ml, split=">")
-    for(i in 1:length(vsplt))
-    {
-      xls$Volumen_S_ml[i]      <- ifelse(length(vsplt[[i]]) > 1,
-                                         vsplt[[i]][2],
-                                         vsplt[[i]][1])
-      
-      xls$fullS[i] <- ifelse(length(vsplt[[i]]) > 1, 1, 0)
-    }
-    
-    xls$Volumen_S_ml <- as.numeric(xls$Volumen_S_ml)
-    xls$Volumen_N_ml <- as.numeric(xls$Volumen_N_ml)
-    xls$Volumen_W_ml <- as.numeric(xls$Volumen_W_ml)
-    xls$Volumen_O_ml <- as.numeric(xls$Volumen_O_ml)
-  }
-  
-  # build specific Q in l/m2
-  {
-    xls$specQN <- xls$Volumen_N_ml/xls$Fl?cheRinneN_m2/1000
-    xls$specQO <- xls$Volumen_O_ml/xls$Fl?cheRinneO_m2/1000
-    xls$specQS <- xls$Volumen_S_ml/xls$Fl?cheRinneS_m2/1000
-    xls$specQW <- xls$Volumen_W_ml/xls$Fl?cheRinneW_m2/1000
-  }
-  
-  return(xls)  
-}
-
-# read Genommene_Proben and make specific runoff for roof
-specQroof <- function(site)
-{
-  # grab and format data
-  setwd("Y:/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/")
-  
-  xlsfile <- paste0(getwd(), "/Genommene_Proben_Dach_BaSaR.xlsx")
-  xls     <- read_excel(xlsfile, sheet=site, col_types="text", skip=2, na=c("na"), trim_ws=TRUE)
-  
-  xls$tBegRain          <- as.POSIXct(xls$tBegRain, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-  xls$tEndRain          <- as.POSIXct(xls$tEndRain, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-  xls$Regenh?he_mm      <- as.numeric(xls$Regenh?he_mm)
-  xls$Anzahl_Ereignisse <- as.numeric(xls$Anzahl_Ereignisse)
-  xls$tBegHydraul       <- as.POSIXct(xls$tBegHydraul, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-  xls$tEndHydraul       <- as.POSIXct(xls$tEndHydraul, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-  xls$Abflussvol_l      <- as.numeric(xls$Abflussvol_l)
-  
-  
-  # roof areas
-  roofArea <- ifelse(site=="BBW", 183.57, 194)
-  
-  # build specific Q
-  xls$specQ <- xls$Abflussvol_l/roofArea
-  
-  return(xls)  
-}
-
-# read Genommene_Proben and make specific runoff for storm sewer
-specQsite <- function(site)
-{
-  # grab and format data
-  setwd("Y:/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/")
-  
-  xlsfile <- paste0(getwd(), "/Genommene_Proben_Abfluss_BaSaR.xlsx")
-  xls     <- read_excel(xlsfile, sheet=site, col_types="text", skip=2, na=c("na"), trim_ws=TRUE)
-  
-  xls$tBegRain          <- as.POSIXct(xls$tBegRain, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-  xls$tEndRain          <- as.POSIXct(xls$tEndRain, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-  xls$Regenh?he_mm      <- as.numeric(xls$Regenh?he_mm)
-  xls$Anzahl_Ereignisse <- as.numeric(xls$Anzahl_Ereignisse)
-  xls$tBegHydraul       <- as.POSIXct(xls$tBegHydraul, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-  xls$tEndHydraul       <- as.POSIXct(xls$tEndHydraul, format="%d.%m.%Y %H:%M", tz="Etc/GMT-1")
-  xls$Abflussvol_l      <- as.numeric(xls$Abflussvol_l)
-  
-  # site areas
-  siteArea <- ifelse(site=="BBW", 3950, 3300)
-  
-  # build specific Q
-  xls$specQ <- xls$Abflussvol_l/siteArea
-  
-  return(xls)  
-}
-
 # compute SPECIFIC loads [emitted mass/m2] for all substances at all measurement points
 # detLimit = "zero", "half", "detLim" -> switch for treatment of data at detection limit
 # load units are: microgram if concentration in microgram/l, or miligram if conc. in mg/l
-computeLoads <- function(site, detLimit,
-                         outFileFacade,
-                         outFileRoof,
-                         outFileSewer)
+computeLoads <- function(site, 
+                         detLimit,
+                         outFile)
 {
   # make specific runoff for all points
   {
