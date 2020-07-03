@@ -1,17 +1,3 @@
-library(dplyr)
-library(RCurl)
-library(curl)
-library(zoo)
-library(tidyr)
-library(stringr)
-library(kwb.base)
-library(ggplot2)
-library(gridExtra)
-library(ggpubr)
-library(lubridate)
-library(readxl)
-library(fitdistrplus)
-
 # function to grab rainfall data from ftp and d2w and add it to BaSaR rain data base "rainDB.txt".
 updateRainDB <- function(tBeg, tEnd, 
                          D2Wsid, 
@@ -19,6 +5,10 @@ updateRainDB <- function(tBeg, tEnd,
                          overwriteOldrainDB,
                          skip)
 {
+  require(dplyr)
+  require(RCurl)
+  require(curl)
+  
   # the function downloads a user-defined time period (days) and adds this data to the corresponding
   # rows of rainDB. 
   # data sources are KWB ftp server for BWB gauges (Owd, KöpI, Joh, BlnX, BlnIV, BlnXI) and 
