@@ -1,5 +1,6 @@
 # function to grab rainfall data from ftp and d2w and add it to BaSaR rain data base "rainDB.txt".
 updateRainDB <- function(rawdir,
+                         rainDB,
                          tBeg, 
                          tEnd, 
                          tFalseRain,
@@ -30,7 +31,7 @@ updateRainDB <- function(rawdir,
   
   # read and format text file with time stamps of adjusted rain data
   {
-    tFalseRain <- paste(rawdir, 'tFalseRain.txt', sep='')
+    tFalseRain <- paste(rawdir, tFalseRain, sep='')
     tFalseRain <- scan(tFalseRain, what="character", sep="\n", quiet=TRUE)
     tFalseRain <- paste0(tFalseRain, ":00")
     tFalseRain <- format(as.POSIXct(tFalseRain, 
@@ -41,16 +42,16 @@ updateRainDB <- function(rawdir,
   
   # read rainDB
   {
-    rainDB <- read.table(paste0(rawdir,"rainDB.txt"), 
+    rainDB <- read.table(paste(rawdir,"rainDB.txt", sep=''), 
                          sep=";", 
                          header=TRUE, 
                          encoding="UTF-8",
-                         colClasses=c("character", rep("numeric", times=7)))
+                         colClasses=c("character", rep("numeric", times=2)))
   }
   
   # read BWB gauges for user-defined time window, format data and add to rainDB
-  if(skip != "BWB")
-  {
+  if(skip != "BWB"){
+    
     # check ftp server for data availability
     {
       # make user time window
@@ -59,8 +60,8 @@ updateRainDB <- function(rawdir,
                     by=1)+1 # +1 because on ftp server, rain data for day i are in file named i+1
       
       # read list of available files
-      availDates <- unlist(strsplit(getURL("xxxxxxxx", 
-                                           userpwd="xxxxx:xxxxx"),
+      availDates <- unlist(strsplit(getURL('ftp://ftp.kompetenz-wasser.de/', 
+                                           userpwd=login),
                                     "\r*\n"))
       xx         <- as.list(availDates[4:length(availDates)])
       availDates <- unlist(lapply(X=xx, FUN=substr, start=nchar(xx)-14, stop=nchar(xx)-9))
@@ -80,42 +81,44 @@ updateRainDB <- function(rawdir,
       # make empty data frame for holding downloaded data from user-defined time window
       downloadedRain <- data.frame()
       
-      # loop over 
+      # loop over available dates
       for(i in 1:length(availUser))
       {
         # to store daily data (since this is how they're stored on ftp server)
-        rainDay <- data.frame(dateTime=NA,
-                              Owd=NA,
-                              KöpI=NA,
-                              Joh=NA,
-                              BlnX=NA,
-                              BlnIV=NA,
-                              BlnXI=NA)
+        rainDay <- data.frame(dateTime=NA, BlnX=NA, BlnXI=NA)
         
         # re-format date for pasting onto download string
         i2 <- format(availUser[i], "%y%m%d", tz="Etc/GMT-1")
         i2 <- format(availUser[i], "%y%m%d", tz="Europe/Berlin")
         
         # make download string
-        read_url <- paste0("xxxxx", 
-                           "xxxxxx",
+        read_url <- paste0('ftp://ftp.kompetenzwasser.de/', 
+                           "Regenschreiber_",
                            i2,
-                           "_0810.txt" )
+                           "_0810.txt")
         
         # read file from ftp server
         url_content <- getURL(read_url, 
-                              userpwd="xxxxxx:xxxxxx")
+                              userpwd=login)
         
         # split content into lines
         content <- strsplit(url_content, split="\n")[[1]]
         
+        # grab and split headers (1st element)
+        headers <- content[1]
+        headers <- strsplit(x=headers, split='\t')[[1]]
+        
         # rempove 1st element (headers)
         content <- content[2:length(content)]
         
-        # make decent data frame for current day with BaSaR-relevant rain gauges:
-        # BBW: Owd, KöpI, Joh
-        # BBW: Owd, KöpI, Joh
-        # BBR: BlnX, BlnIV, BlnXI
+        # make data.frame for current day including only rain gauges
+        # contained in the version of rainDB on disk:
+        
+        # determine which columns to use
+        names(rainDB)[2:ncol(rainDB)]
+        
+        
+        # ******************************************************
         
         # since BWB data does not always have the same number of rows, loop length
         # must be determined by finding the row number of the last time stamp of
@@ -123,8 +126,7 @@ updateRainDB <- function(rawdir,
         
         # make vector of downloaded dates
         downloadedDates <- rep(NA, times=length(content))
-        for(j in 1:length(content))
-        {
+        for(j in 1:length(content)){
           contentj           <- content[j]
           downloadedDates[j] <- strsplit(contentj, split="\t")[[1]][1]
         }
@@ -134,6 +136,7 @@ updateRainDB <- function(rawdir,
         
         # current date
         datei <- as.Date(availUser[i], format="%Y-%m-%d")
+        
         # current date. "-1" due to the day shift in the BWB data base
         datei <- as.Date(availUser[i], format="%Y-%m-%d")-1
         
@@ -141,18 +144,16 @@ updateRainDB <- function(rawdir,
         rowsdatei <- which(downloadedDates==datei)
         
         # if user wants to download last night's rain (availUser[i] == Sys.Date()),
-        # then include all rows in content, otherwise include only until end of current
-        # day
-        if(availUser[i] != Sys.Date())
-        {
+        # then include all rows in content, otherwise include only rows until end of 
+        # current day
+        if(availUser[i] != Sys.Date()){
           loopRows <- rowsdatei 
         } else {
           loopRows <- 1:length(content)
         }
         
         # split content
-        for(j in 1:length(loopRows)) 
-        {
+        for(j in 1:length(loopRows)){
           contentsplt  <- strsplit(content[loopRows[j]], split="\t")[[1]]
           rowj         <- contentsplt[c(1, 35, 29, 26, 39, 37, 38)]
           rainDay[j, ] <- rowj

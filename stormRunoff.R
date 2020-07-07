@@ -152,10 +152,10 @@ computeVol <- function(dischargeData, Qcolumn, tBeg, tEnd)
   
   Qsel <- filter(dischargeData, dateTime >= tBeg & dateTime <= tEnd & !is.na(Qcolumn))
   
-  AA   <- pull(Qsel, Qcolumn)[2:(nrow(Qsel))]
-  aa   <- pull(Qsel, Qcolumn)[1:(nrow(Qsel)-1)]
-  hh   <- as.numeric(Qsel$dateTime[2:(nrow(Qsel))] -
-                       Qsel$dateTime[1:(nrow(Qsel)-1)])*60
+  AA <- pull(Qsel, Qcolumn)[2:(nrow(Qsel))]
+  aa <- pull(Qsel, Qcolumn)[1:(nrow(Qsel)-1)]
+  hh <- (as.numeric(Qsel$dateTime[2:(nrow(Qsel))]) - 
+           as.numeric(Qsel$dateTime[1:(nrow(Qsel)-1)]))/3600
   Vtot <- sum((AA + aa)/2*hh)
   
   return(Vtot)
