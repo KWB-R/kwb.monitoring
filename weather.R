@@ -1,5 +1,8 @@
 # function to grab rainfall data from ftp and d2w and add it to BaSaR rain data base "rainDB.txt".
-updateRainDB <- function(tBeg, tEnd, 
+updateRainDB <- function(rawdir, # ********************* 
+                         tBeg, tEnd, 
+                         tFalseRain, # *********************
+                         login, # *********************
                          D2Wsid, 
                          removeTempBBW, 
                          overwriteOldrainDB,
