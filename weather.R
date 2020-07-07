@@ -1,6 +1,6 @@
 # function to grab rainfall data from ftp and d2w and add it to BaSaR rain data base "rainDB.txt".
 updateRainDB <- function(rawdir,
-                         rainDB,
+                         rainDBname,
                          tBeg,
                          tEnd,
                          tFalseRain,
@@ -12,7 +12,6 @@ updateRainDB <- function(rawdir,
 {
   require(dplyr)
   require(RCurl)
-  require(curl)
 
   # the function downloads a user-defined time period (days) and adds this data to the corresponding
   # rows of rainDB.
@@ -104,9 +103,10 @@ updateRainDB <- function(rawdir,
         # split content into lines
         content <- strsplit(url_content, split="\n")[[1]]
 
-        # grab and split headers (1st element)
-        headers <- content[1]
-        headers <- strsplit(x=headers, split='\t')[[1]]
+        # grab and split column names (1st element)
+        colNames <- content[1]
+        colNames <- strsplit(x=colNames, split='\t')[[1]]
+        colNames <- gsub(pattern = " ", replacement = "", x = colNames)  # remove whitespace
 
         # rempove 1st element (headers)
         content <- content[2:length(content)]
@@ -114,11 +114,9 @@ updateRainDB <- function(rawdir,
         # make data.frame for current day including only rain gauges
         # contained in the version of rainDB on disk:
 
-        # determine which columns to use******************************************************
-        names(rainDB)[2:ncol(rainDB)]
-        # determine which columns to use******************************************************
-
-
+        # determine which columns to use
+        useCol <- names(rainDB)[2:ncol(rainDB)]
+        useCol <- grep(pattern=useCol[1], x=colNames) 
 
         # since BWB data does not always have the same number of rows, loop length
         # must be determined by finding the row number of the last time stamp of
@@ -155,7 +153,7 @@ updateRainDB <- function(rawdir,
         # split content
         for(j in 1:length(loopRows)){
           contentsplt  <- strsplit(content[loopRows[j]], split="\t")[[1]]
-          rowj         <- contentsplt[c(1, 35, 29, 26, 39, 37, 38)]
+          rowj         <- contentsplt[c(1, useCol)]
           rainDay[j, ] <- rowj
         }
 
@@ -167,8 +165,7 @@ updateRainDB <- function(rawdir,
       }
 
       # format decimal point
-      for(j in 2:7)
-      {
+      for(j in 2:7){
         downloadedRain[[j]] <- as.numeric(gsub(",", ".", downloadedRain[[j]]))
       }
 
