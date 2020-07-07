@@ -114,11 +114,11 @@ updateRainDB <- function(rawdir,
         # make data.frame for current day including only rain gauges
         # contained in the version of rainDB on disk:
         
-        # determine which columns to use
+        # determine which columns to use******************************************************
         names(rainDB)[2:ncol(rainDB)]
         
         
-        # ******************************************************
+        
         
         # since BWB data does not always have the same number of rows, loop length
         # must be determined by finding the row number of the last time stamp of
