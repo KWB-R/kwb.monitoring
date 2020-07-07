@@ -60,7 +60,7 @@ readTipbucket <- function(path, dateFormat, timeZone)
                                      tz="Etc/GMT-1")
   
   timeWindows$durations <- (as.numeric(timeWindows$end) - 
-    as.numeric(timeWindows$startDay))
+                              as.numeric(timeWindows$startDay))
   
   
   # identify which files are needed for covering full time period by grabbing the file
