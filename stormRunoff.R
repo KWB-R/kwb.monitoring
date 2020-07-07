@@ -60,7 +60,7 @@ readTipbucket <- function(path, dateFormat, timeZone)
                                      tz="Etc/GMT-1")
   
   timeWindows$durations <- (as.numeric(timeWindows$end) - 
-    as.numeric(timeWindows$startDay))
+                              as.numeric(timeWindows$startDay))
   
   
   # identify which files are needed for covering full time period by grabbing the file
@@ -152,10 +152,10 @@ computeVol <- function(dischargeData, Qcolumn, tBeg, tEnd)
   
   Qsel <- filter(dischargeData, dateTime >= tBeg & dateTime <= tEnd & !is.na(Qcolumn))
   
-  AA   <- pull(Qsel, Qcolumn)[2:(nrow(Qsel))]
-  aa   <- pull(Qsel, Qcolumn)[1:(nrow(Qsel)-1)]
-  hh   <- as.numeric(Qsel$dateTime[2:(nrow(Qsel))] -
-                       Qsel$dateTime[1:(nrow(Qsel)-1)])*60
+  AA <- pull(Qsel, Qcolumn)[2:(nrow(Qsel))]
+  aa <- pull(Qsel, Qcolumn)[1:(nrow(Qsel)-1)]
+  hh <- (as.numeric(Qsel$dateTime[2:(nrow(Qsel))]) - 
+           as.numeric(Qsel$dateTime[1:(nrow(Qsel)-1)]))/3600
   Vtot <- sum((AA + aa)/2*hh)
   
   return(Vtot)
