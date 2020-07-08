@@ -3,16 +3,12 @@ updateRainDB <- function(rawdir,
                          rainDBname,
                          tBeg,
                          tEnd,
-                         tFalseRain,
+                         tFalseRainName,
                          login,
                          D2Wsid,
-                         removeTempBBW,
-                         overwriteOldrainDB,
-                         skip)
-{
-  require(dplyr)
-  require(RCurl)
-
+                         summerTime,
+                         skip,
+                         overwriteOldrainDB){
   # the function downloads a user-defined time period (days) and adds this data to the corresponding
   # rows of rainDB.
   # data sources are KWB ftp server for BWB gauges (Owd, KöpI, Joh, BlnX, BlnIV, BlnXI) and
@@ -23,38 +19,40 @@ updateRainDB <- function(rawdir,
   # and modify them manually in rainDB. then, the time stamps where the false data were identified
   # are entered in tFalseRain. this will make the function avoid replacing those values with the
   # downloaded ones in case the user downloads the same time period again
-
+  
   # column names in internal rainDB come from rainDB on disk. 
   # column name for KWB rain gauge must be 'KWB'
-  # first column in all data sources must be time stamps
+  # first column in all data sources must be time stamps. remaining columns contain rainfall
+  # in the different rain gauges
+  # decimal separator in BWB and KWB is ',', and is changed to '.' by function
+  
+  require(dplyr)
+  require(RCurl)
   
   # control locale for the name of months in German
   if(Sys.getlocale(category="LC_TIME") != "German_Germany.1252")
     Sys.setlocale(category="LC_TIME", locale="German_Germany.1252")
-
+  
   # read and format text file with time stamps of adjusted rain data
-  {
-    tFalseRain <- paste(rawdir, tFalseRain, sep='')
-    tFalseRain <- scan(tFalseRain, what="character", sep="\n", quiet=TRUE)
-    tFalseRain <- paste0(tFalseRain, ":00")
-    tFalseRain <- format(as.POSIXct(tFalseRain,
-                                    format="%d.%m.%Y %H:%M:%S",
-                                    tz="Etc/GMT-1"),
-                         format="%Y-%m-%d %H:%M")
-  }
+  tFalseRain <- paste(rawdir, tFalseRainName, sep='')
+  tFalseRain <- scan(tFalseRain, what="character", sep="\n", quiet=TRUE)
+  tFalseRain <- paste0(tFalseRain, ":00")
+  tFalseRain <- format(as.POSIXct(tFalseRain,
+                                  format="%d.%m.%Y %H:%M:%S",
+                                  tz="Etc/GMT-1"),
+                       format="%Y-%m-%d %H:%M")
 
   # read rainDB
-  {
-    rainDB <- read.table(paste(rawdir, rainDBname, sep=''),
-                         sep=";",
-                         header=TRUE,
-                         encoding="UTF-8",
-                         colClasses=c("character", rep("numeric", times=3)))
-  }
-
+  rainDB <- read.table(paste(rawdir, rainDBname, sep=''),
+                       sep=";",
+                       header=TRUE,
+                       encoding="UTF-8",
+                       colClasses=c("character", rep("numeric", times=3)),
+                       stringsAsFactors=FALSE)
+  
   # read BWB gauges for user-defined time window, format data and add to rainDB
   if(skip != "BWB"){
-
+    
     # check ftp server for data availability
     {
       # make user time window
@@ -79,14 +77,14 @@ updateRainDB <- function(rawdir,
       if(length(index)==0) stop("desired data are unavailable on ftp server")
     }
 
-    # download available data from user time window and build file
+    # download available data from user time window and add to output data.frame
     {
       # make empty data frame for holding downloaded data from user-defined time window
       downloadedRain <- data.frame()
 
       # loop over available dates
-      for(i in 1:length(availUser))
-      {
+      for(i in 1:length(availUser)){
+        
         # data frame to temporarily store daily data 
         # (since this is how they're stored on ftp server)
         rainDay <- as.data.frame(matrix(nrow=0, 
@@ -125,7 +123,8 @@ updateRainDB <- function(rawdir,
         # make data.frame for current day, including only rain gauges
         # contained in the version of rainDB on disk:
 
-        # determine which columns to use
+        # determine which columns to use (column with KWB rain gauge is left out by this,
+        # because it doesn't exist in BWB data)
         useCol <- match(cnRainDB, cnFTP)
         useCol <- useCol[!is.na(useCol)]
 
@@ -179,209 +178,199 @@ updateRainDB <- function(rawdir,
       downloadedRain <- data.frame(lapply(X=downloadedRain,
                                           FUN=function(a){gsub(pattern=',', 
                                                                replacement='.',
-                                                               x=a)}))
+                                                               x=a)}),
+                                   stringsAsFactors=FALSE)
       
       # bring time axis of downloaded BWB data to winter time (bringing summer time stamps
       # (tz="Europe/Berlin") to winter time (tz="Etc/GMT-1"). this is not necessary for KWB
       # rain gauge, since logger configuration is always winter time
-      {
-        # make list of 5-min. time stamps of summer time in Berlin in 2017, 2018, 2019 and 2020
-        # in Berlin/Europe time zone, i.e., containing the shift, to match the BWB data
-        {
-          tsSummer <- list(
-            sum2020=format(seq(from=as.POSIXct("29-Mrz-20 03:00:00 +0200",
-                                               format="%d-%b-%y %H:%M:%S %z",
-                                               tz="Europe/Berlin"),
-                               to=as.POSIXct("25-Okt-20 02:55:00 +0200",
-                                             format="%d-%b-%y %H:%M:%S %z",
-                                             tz="Europe/Berlin"),
-                               by=300),
-                           format="%d-%b-%y %H:%M:%S"),
-            sum2021=format(seq(from=as.POSIXct("29-Mrz-20 03:00:00 +0200",
-                                               format="%d-%b-%y %H:%M:%S %z",
-                                               tz="Europe/Berlin"),
-                               to=as.POSIXct("25-Okt-20 02:55:00 +0200",
-                                             format="%d-%b-%y %H:%M:%S %z",
-                                             tz="Europe/Berlin"),
-                               by=300),
-                           format="%d-%b-%y %H:%M:%S"))
-          }
-
-        # find summer time stamps in downloaded BWB data (downloadedRain), checking against the summer
-        # time stamps of the corresponding years (tsSummer2)
-        {
-          # find year(s) of downloadedRain
-          yearsdownloaded <- unique(format(as.POSIXct(downloadedRain$dateTime,
-                                                      tz="Europe/Berlin",
-                                                      format="%d-%b-%y %H:%M:%S"),
-                                           format="%Y"))
-
-          # use only tsSummer element(s) for the years in downloadedRain
-          tsSummer2 <- tsSummer[paste0("sum", yearsdownloaded)]
-
-          # convert tsSummer2 into one character vector of summer time stamps
-          tsSummer2 <- unlist(tsSummer2)
-
-          # make index vector for all time stamps in downloadedRain
-          indexAll    <- 1:nrow(downloadedRain)
-
-          # try to match for summer time stamps in downloadedRain
-          indexSummer <- match(tsSummer2, downloadedRain$dateTime)
-          indexSummer <- indexSummer[!is.na(indexSummer)]
-
-          # did user download any summer time stamps?
-          if(length(indexSummer) > 0){
-
-            # if so, winter indexes are all indexes that are not summer. this includes the case
-            # where all indexes are summer, in which case indexWinter has length 0 (integer(0))
-            indexWinter <- indexAll[-indexSummer]
-
-          } else { # if there are no summer indexes, there are only winter indexes
-
-            indexWinter <- indexAll
-          }
-        }
-
-        # append "+0200" to summer time stamps and "+0100" to winter time stamps, in preparation
-        # for conversion to tz="Etc/GMT-1"
-        {
-          # append "+0200" to all summer time stamps, if they exist
-          # (downloaded data may be only in winter)
-          if(length(indexSummer) > 0)
-          {
-            downloadedRain$dateTime[indexSummer] <-
-              paste(downloadedRain$dateTime[indexSummer], "+0200")
-          }
-
-          # append "+0100" to all winter time stamps, if they exist
-          # (downloaded data may be only in summer)
-          if(length(indexWinter) > 0)
-          {
-            downloadedRain$dateTime[indexWinter] <-
-              paste(downloadedRain$dateTime[indexWinter], "+0100")
-          }
-        }
-
-        # convert to tz="Etc/GMT-1" and re-format to remove seconds (to match dateTime in rainDB)
-        {
-          # format as Etc/GMT-1 to remove winter/summer time shift
-          downloadedRain$dateTime <- format(as.POSIXct(downloadedRain$dateTime,
-                                                       format="%d-%b-%y %H:%M:%S %z"),
-                                            tz="Etc/GMT-1")
-
-          # format dateTime as Y-m-d H:M
-          downloadedRain$dateTime <- as.character(format(as.POSIXct(downloadedRain$dateTime,
-                                                                    tz="Etc/GMT-1",
-                                                                    format="%Y-%m-%d %H:%M:%S"),
-                                                         tz="Etc/GMT-1",
-                                                         format="%Y-%m-%d %H:%M"))
-        }
+      
+      # for each year, make 5-min. time stamps of summer time in tz Berlin/Europe 
+      # using range given by user. needed to shift BWB data to winter time
+      tsSummer <- list()
+      tsSummer <- apply(X=summerTime,
+                        MARGIN=1,
+                        FUN=function(a){
+                          format(
+                            seq(from=as.POSIXct(a['start'],
+                                                format="%d-%b-%y %H:%M:%S %z",
+                                                tz="Europe/Berlin"), 
+                                to=as.POSIXct(a['end'],
+                                              format="%d-%b-%y %H:%M:%S %z",
+                                              tz="Europe/Berlin"), 
+                                by=300),
+                            tz="Europe/Berlin",
+                            format="%d-%b-%y %H:%M:%S")
+                        })
+      names(tsSummer) <- summerTime$year
+      tsSummer <- lapply(X=tsSummer, FUN=as.character)
+      tsSummer <- unlist(tsSummer, use.names=FALSE)
+      
+      # find summer time stamps in downloaded BWB data (downloadedRain), 
+      # checking against the summer time stamps of the corresponding years (tsSummer)
+      
+      # find year(s) of downloadedRain
+      yearsdownloaded <- as.character(unique(format(as.POSIXct(downloadedRain$dateTime,
+                                                               tz="Europe/Berlin",
+                                                               format="%d-%b-%y %H:%M:%S"),
+                                                    format="%Y")))
+      
+      # make index vector for all time stamps in downloadedRain
+      indexAll    <- 1:nrow(downloadedRain)
+      
+      # try to match for summer time stamps in downloadedRain
+      indexSummer <- match(tsSummer, downloadedRain$dateTime)
+      indexSummer <- indexSummer[!is.na(indexSummer)]
+      
+      # did user download any summer time stamps?
+      if(length(indexSummer) > 0){
+        
+        # if so, winter indexes are all indexes that are not summer. this includes the case
+        # where all indexes are summer, in which case indexWinter has length 0 (integer(0))
+        indexWinter <- indexAll[-indexSummer]
+        
+      } else { # if there are no summer indexes, there are only winter indexes
+        
+        indexWinter <- indexAll
       }
-    }
-
-    # add downloadedRain to rainDB. ignore rows with false rain (corrected manually in rainDB)
-    {
+      
+      # append "+0200" to summer time stamps and "+0100" to winter time stamps, in preparation
+      # for conversion to tz="Etc/GMT-1"
+      
+      # append "+0200" to all summer time stamps, if they exist
+      # (downloaded data may be only in winter)
+      if(length(indexSummer) > 0){
+        downloadedRain$dateTime[indexSummer] <-
+          paste(downloadedRain$dateTime[indexSummer], "+0200")
+      }
+      
+      # append "+0100" to all winter time stamps, if they exist
+      # (downloaded data may be only in summer)
+      if(length(indexWinter) > 0){
+        downloadedRain$dateTime[indexWinter] <-
+          paste(downloadedRain$dateTime[indexWinter], "+0100")
+      }
+      
+      # convert to tz="Etc/GMT-1" and re-format to remove seconds (to match dateTime in rainDB)
+      
+      # format as Etc/GMT-1 to remove winter/summer time shift
+      downloadedRain$dateTime <- format(as.POSIXct(downloadedRain$dateTime,
+                                                   format="%d-%b-%y %H:%M:%S %z"),
+                                        tz="Etc/GMT-1")
+      
+      # format dateTime as Y-m-d H:M
+      downloadedRain$dateTime <- as.character(format(as.POSIXct(downloadedRain$dateTime,
+                                                                tz="Etc/GMT-1",
+                                                                format="%Y-%m-%d %H:%M:%S"),
+                                                     tz="Etc/GMT-1",
+                                                     format="%Y-%m-%d %H:%M"))
+      
+      # add downloadedRain to rainDB. ignore rows with false rain (corrected manually 
+      # in rainDB):
+      
+      # match columns in downloadedRain and rainDB, removing dateTime column
+      useCol2 <- match(names(downloadedRain)[-1], names(rainDB))
+      
       # did user download time window including tFalseRain?
-      index1 <- match(tFalseRain, downloadedRain$dateTime)
-      index1 <- index1[!is.na(index1)]
-
-      if(length(index1) > 0) # if so, remove those rows from the downloaded data
-      {                      # and add the remaining rows to rainDB
-
-        downloadedRain     <- downloadedRain[-index1, ]
-        index              <- match(downloadedRain$dateTime, rainDB$dateTime)
-        rainDB[index, 2:7] <- downloadedRain[, 2:7]
-
-      } else {               # if not, simply add downloaded data to rainDB
-
-        index              <- match(downloadedRain$dateTime, rainDB$dateTime)
-        rainDB[index, 2:7] <- downloadedRain[, 2:7]
+      indexFalse <- match(tFalseRain, downloadedRain$dateTime)
+      indexFalse <- indexFalse[!is.na(indexFalse)]
+      
+      # if so, remove those rows from the downloaded data and add the remaining rows 
+      # to rainDB
+      if(length(indexFalse) > 0){ 
+        downloadedRain <- downloadedRain[-indexFalse, ]
+        index <- match(downloadedRain$dateTime, rainDB$dateTime)
+        rainDB[index, useCol2] <- downloadedRain[, -1]
+        
+        # if not, simply add downloaded data to rainDB
+      } else {               
+        index <- match(downloadedRain$dateTime, rainDB$dateTime)
+        rainDB[index, useCol2] <- downloadedRain[, -1]
       }
     }
   }
-
+  
   # read KWB rain gauge in Bruno-Bürgel-Weg for user-defined time window, format data and add to rainDB
   if(skip != "KWB")
   {
     # download d2w data
-    {
-      t2       <- as.POSIXct(tEnd, format="%Y%m%d", tz="Etc/GMT-1")
-      t1       <- as.POSIXct(tBeg, format="%Y%m%d", tz="Etc/GMT-1")
-      tPeriod  <- as.numeric(t2 - t1)
-      tPeriod  <- tPeriod+1
-
-      url      <- paste0("xxxxx","sid=",
-                         D2Wsid,
-                         "&start=",
-                         format(t1, format="%d.%m.%Y", tz="Etc/GMT-1"),
-                         "%2000:00:00&",
-                         "periode=",
-                         tPeriod,
-                         "xxxxxxx")
-      tempFile <- paste0(rawdir, "temp_d2w.txt")
-
-      # download data onto temporary file
-      download.file(url, tempFile)
-    }
-
+    t2 <- as.POSIXct(tEnd, format="%Y%m%d", tz="Etc/GMT-1")
+    t1 <- as.POSIXct(tBeg, format="%Y%m%d", tz="Etc/GMT-1")
+    tPeriod <- as.numeric(t2 - t1)
+    tPeriod <- tPeriod+1
+    
+    url <- paste0("https://www.nivulog.nivus-d2w.com/download.tsv?","sid=",
+                  D2Wsid,
+                  "&start=",
+                  format(t1, format="%d.%m.%Y", tz="Etc/GMT-1"),
+                  "%2000:00:00&",
+                  "periode=",
+                  tPeriod,
+                  "&mode=0&separator=9&nrformat=-1&timeformat=-1&dateformat=-1&sitenames=0&site0=A8FE7F82188FFB73&tag0=00005200&field0=ch1&cont0=6&tp0=-5&units0=")
+    tempFile <- paste0(rawdir, "temp_d2w.txt")
+    
+    # download data onto temporary file
+    download.file(url, tempFile, quiet=TRUE)
+    
     # check data downloaded from d2w. use first item of downloaded file to check
-    {
-      char1 <- scan(tempFile, what="character", nmax=1)
-      d2wOK <- grepl(pattern="?at*/*", x = char1)
-    }
-
-    # if data downloaded from d2w are ok, read and format downloaded file, and add data to rainDB
-    {
-      if(d2wOK){
-
-        # read and delete temporary file
-        tempBBW <- read.table(tempFile,
-                              header=TRUE,
-                              sep="\t",
-                              colClasses=c("character", "numeric"),
-                              dec=",")
-        if(removeTempBBW) file.remove(tempFile)
-
-        # format time stamps
-        tempBBW[[1]]     <- as.character(format(as.POSIXct(as.character(tempBBW[[1]]),
-                                                           format="%d.%m.%Y %H:%M:%S",
-                                                           tz="Etc/GMT-1"),
-                                                "%Y-%m-%d %H:%M"))
-
-        # add tempBBW to rainDB. ignore rows with false rain (were corrected manually in rainDB)
-        {
-          # did user download time window including tFalseRain?
-          index1 <- match(tFalseRain, tempBBW[[1]])
-          index1 <- index1[!is.na(index1)]
-
-          if(length(index1) > 0) # if so, remove those rows from the downloaded data
-          {                      # and add the remaining rows to rainDB
-            tempBBW          <- tempBBW[-index1, ]
-            index            <- match(tempBBW[[1]], rainDB$dateTime)
-            rainDB[index, 8] <- tempBBW[, 2]
-
-          } else {               # if not, simply add downloaded data to rainDB
-
-            index            <- match(tempBBW[[1]], rainDB$dateTime)
-            index            <- index[!is.na(index)]
-            rainDB[index, 8] <- tempBBW[, 2]
-          }
-        }
-
-      } else {
-
-        stop("file downloaded from d2w seems strange...please check temp_d2w.txt")
-
+    char1 <- scan(tempFile, what="character", nmax=1, quiet=TRUE)
+    d2wOK <- grepl(pattern="?at*/*", x = char1)
+    
+    # if data downloaded from d2w are ok, read and format downloaded file, and add data to 
+    # rainDB
+    if(d2wOK){
+      
+      # read and delete temporary file
+      tempKWB <- read.table(tempFile,
+                            header=TRUE,
+                            sep="\t",
+                            colClasses=c("character", "numeric"),
+                            col.names=c('dateTime', 'KWB'),
+                            dec=",",
+                            stringsAsFactors=FALSE)
+      file.remove(tempFile)
+      
+      # format time stamps
+      tempKWB$dateTime <- as.character(format(as.POSIXct(as.character(tempKWB$dateTime),
+                                                     format="%d.%m.%Y %H:%M:%S",
+                                                     tz="Etc/GMT-1"),
+                                          "%Y-%m-%d %H:%M"))
+      
+      # add tempBBW to rainDB. ignore rows with false rain (were corrected manually in 
+      # rainDB):
+      
+      # match columns in downloadedRain and rainDB, removing dateTime column
+      useCol3 <- match(names(tempKWB)[-1], names(rainDB))
+      
+      # did user download time window including tFalseRain?
+      indexFalse <- match(tFalseRain, tempKWB$dateTime)
+      indexFalse <- indexFalse[!is.na(indexFalse)]
+      
+      # if so, remove those rows from the downloaded data and add the remaining 
+      # rows to rainDB
+      if(length(indexFalse) > 0){
+        tempKWB  <- tempKWB[-indexFalse, ]
+        index <- match(tempKWB$dateTime, rainDB$dateTime)
+        rainDB[index, useCol3] <- tempKWB[, -1]
+        
+        # if not, simply add downloaded data to rainDB
+      } else {               
+        index <- match(tempKWB$dateTime, rainDB$dateTime)
+        index <- index[!is.na(index)]
+        rainDB[index, useCol3] <- tempKWB[, -1]
       }
+      
+    } else {
+      stop("file downloaded from d2w seems strange...please check temp_d2w.txt\nmaybe new D2Wsid required")
     }
   }
-
+  
   # write new rainDB
   {
     if(overwriteOldrainDB)
     {
       write.table(rainDB,
-                  file=paste0(rawdir, "rainDB.txt"),
+                  file=paste0(rawdir, rainDBname),
                   quote=FALSE,
                   sep=";",
                   row.names=FALSE,
@@ -408,7 +397,7 @@ readRain <- function()
                      header=TRUE,
                      encoding="UTF-8",
                      colClasses=c("character", rep("numeric", times=7)))
-
+  
   rain$dateTime <- as.POSIXct(rain$dateTime,
                               format="%Y-%m-%d %H:%M",
                               tz="Etc/GMT-1")
@@ -419,7 +408,7 @@ readRain <- function()
 download_tempData <- function() #BBW=427; BBR=430
 {
   ###BBW
-
+  
   #download data from DWD ftp Server
   setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten")
   url <- "ftp://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/recent/10minutenwerte_TU_00427_akt.zip"
@@ -438,8 +427,8 @@ download_tempData <- function() #BBW=427; BBR=430
     datalist[[i]]<-read.delim2(filelist[i])
   }
   tempBBWnew  <- do.call("rbind" ,datalist)
-
-
+  
+  
   #clean data set
   tempBBWnew <- as.data.frame(tempBBWnew, row.names = NULL,
                               responseName = "Freq", stringsAsFactors = F,header=FALSE,
