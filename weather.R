@@ -34,8 +34,8 @@ updateRainDB <- function(rawdir,
     Sys.setlocale(category="LC_TIME", locale="German_Germany.1252")
   
   # read and format text file with time stamps of adjusted rain data
-  tFalseRain <- paste(rawdir, tFalseRainName, sep='')
-  tFalseRain <- scan(tFalseRain, what="character", sep="\n", quiet=TRUE)
+  tFalseRainPath <- paste(rawdir, tFalseRainName, sep='')
+  tFalseRain <- scan(tFalseRainPath, what="character", sep="\n", quiet=TRUE)
   tFalseRain <- paste0(tFalseRain, ":00")
   tFalseRain <- format(as.POSIXct(tFalseRain,
                                   format="%d.%m.%Y %H:%M:%S",
@@ -43,7 +43,8 @@ updateRainDB <- function(rawdir,
                        format="%Y-%m-%d %H:%M")
 
   # read rainDB
-  rainDB <- read.table(paste(rawdir, rainDBname, sep=''),
+  rdbPath <- paste(rawdir, rainDBname, sep='')
+  rainDB <- read.table(rdbPath,
                        sep=";",
                        header=TRUE,
                        encoding="UTF-8",
@@ -390,7 +391,15 @@ updateRainDB <- function(rawdir,
 # read BaSaR rainfall data base
 readRain <- function(rawdir, rainDBname){
   
-  rain <- read.table(paste(rawdir, rainDBname, sep=''),
+  # make path to file
+  rdbPath <- paste(rawdir, rainDBname, sep='')
+  
+  # check that 1st column is dateTime
+  dateTime1 <- scan(rdbPath, what="character", nmax=1, quiet=TRUE)
+  if(strsplit(dateTime1, split=';')[[1]][1] != 'dateTime')
+    stop('First column of rain data file must contain time stamps (%Y-%m-%d %H:%M)\nand have column name "dateTime"')
+  
+  rain <- read.table(rdbPath,
                      sep=";",
                      header=TRUE,
                      encoding="UTF-8",
@@ -402,107 +411,112 @@ readRain <- function(rawdir, rainDBname){
   
   rain[2:ncol(rain)] <- apply(rain[2:ncol(rain)], FUN=as.numeric, MARGIN=2)
   
+  return(rain)
+}
+
+# look at rainfall for each site, multiple gauges
+checkRain <- function(rainData, tBeg, tEnd, dt, dy, gauges, cols, pch, lty){
+  # filter data
+    tBeg <- as.POSIXct(tBeg, format="%Y-%m-%d %H:%M", tz="Etc/GMT-1")
+    tEnd <- as.POSIXct(tEnd, format="%Y-%m-%d %H:%M", tz="Etc/GMT-1")
+    rainSel <- rainData[rainData$dateTime >= tBeg & rainData$dateTime <= tEnd, 
+                        c('dateTime', gauges)]
   
-  return(dplyr::tbl_df(rain))
+    # make axes
+    tAx <- seq(tBeg, tEnd, by=dt)
+    rainMax <- max(rainSel[2:ncol(rainSel)], na.rm=TRUE)
+    rainAx <- seq(0, rainMax, by=dy)
+  
+    # plot
+    windows(height=4, width=7)
+    par(mar=c(3,4,1,3))
+    plot(rainSel$dateTime, rainSel[[2]], xlim=c(tBeg, tEnd), type="p", pch=NA,
+         axes=FALSE, xlab="", ylab="", main=,
+         ylim=c(0, rainMax))
+    
+    for(i in 1:length(gauges)){
+      lines(rainSel[, c('dateTime', gauges[i])],
+            col=cols[i], pch=pch[i])
+    }
+    legend(x=par('usr')[2]-(par('usr')[2]-par('usr')[1])*0.3, 
+           y=par('usr')[4]-(par('usr')[4]-par('usr')[3])*0.1,
+           legend=gauges,
+           col=col,
+           lty=lty,
+           pch=pch)
+    axis(1, at=tAx, labels=format(tAx, format="%H:%M\n%d-%m"), padj=.45, cex.axis=1.2)
+    axis(2, las=2, at=rainAx, labels=round(rainAx, digits=1))
+    mtext('Rainfall [mm/5min.]', side=2, line=2.5)
+    box()
 }
 
 # download temperature from DWD
-download_tempData <- function() #BBW=427; BBR=430
-{
-  ###BBW
+updateTempDB <- function(rawdir,
+                         tempDBname,
+                         dwdStationID){
   
-  #download data from DWD ftp Server
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten")
-  url <- "ftp://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/recent/10minutenwerte_TU_00427_akt.zip"
-  destfile <- "tempBBWnew.zip"
-  download.file(url, destfile, quiet = FALSE)
-  #unzip BBW data
-  unzip("tempBBWnew.zip", files = NULL, list = FALSE, overwrite = TRUE,
-        junkpaths = FALSE, exdir = "//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/Temperature", unzip = "internal",
+  # make path to tempDB on disk
+  tdbPath <- paste(rawdir, tempDBname, sep='')
+  
+  # read tempDB on disk
+  tempDB <- read.table(tdbPath, 
+                       header=TRUE,
+                       sep=';',
+                       colClasses='character')
+  
+  # format columns
+  tempDB[2:ncol(tempDB)] <- apply(X=tempDB[2:ncol(tempDB)], 
+                  MARGIN=2,
+                  FUN=as.numeric)
+  
+  # download data from DWD ftp Server
+  setwd(rawdir)
+  url <- paste('ftp://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/recent/10minutenwerte_TU_00',
+               dwdStationID, '_akt.zip',
+               sep='')
+  destfile <- "tempDWD.zip"
+  download.file(url, destfile, quiet=TRUE)
+  unzip('tempDWD.zip', files = NULL, list = FALSE, overwrite = TRUE,
+        junkpaths = FALSE, exdir = getwd(), unzip = "internal",
         setTimes = FALSE)
-  #read table BBW
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/Temperature")
-  filelist = list.files(pattern="*.txt$")
-  datalist <- list()
-  for (i in 1:length(filelist))
-  {
-    datalist[[i]]<-read.delim2(filelist[i])
-  }
-  tempBBWnew  <- do.call("rbind" ,datalist)
+  file.remove('tempDWD.zip')
+  unzipped = list.files(pattern="produkt_")
+  
+  # read downloaded table 
+  tempDownloaded <- read.table(unzipped,
+                               header=TRUE,
+                               sep=';',
+                               colClasses='character',
+                               col.names=c("stationID" , "dateTime", "QN", "PP_10", 
+                                           "Temperature", "TM5_10","Relhum", 
+                                           "TD_10", "eor"),
+                               stringsAsFactors=FALSE)
+  
+  # remove unzipped file
+  file.remove(unzipped)
+  
+  # format dateTime
+  tempDownloaded$dateTime <- as.character(format(as.POSIXct(tempDownloaded$dateTime,
+                                                            format="%Y%m%d%H%M", 
+                                                            tz="Etc/GMT-1"), 
+                                                 "%Y-%m-%d %H:%M", 
+                                                 tz="Etc/GMT-1"))
+  
+  # match time stamps and columns between tempDB and tempDownloaded in order to
+  # keep only the rows in tempDownloaded that match tempDB
+  rowIndex <- match(tempDB$dateTime, tempDownloaded$dateTime)
+  rowIndex <- rowIndex[!is.na(rowIndex)]
+  colIndex <- match(names(tempDB), names(tempDownloaded))
+  colIndex <- colIndex[!is.na(colIndex)]
+  tempDownloaded <- tempDownloaded[rowIndex, colIndex]
+  
+  # assign the new tempDownloaded to the corresponding rows in tempDB
+  index <- match(tempDownloaded$dateTime, tempDB$dateTime)
+  index <- index[!is.na(index)]
+  tempDB[index, -1] <- tempDownloaded[, -1]
   
   
-  #clean data set
-  tempBBWnew <- as.data.frame(tempBBWnew, row.names = NULL,
-                              responseName = "Freq", stringsAsFactors = F,header=FALSE,
-                              sep = ";", base = list(LETTERS))
-
-  tempBBWnew <- tidyr::separate(tempBBWnew, col=STATIONS_ID.MESS_DATUM...QN.PP_10.TT_10.TM5_10.RF_10.TD_10.eor, sep = ";", into =c( "id" , "dateTime", "QN", "PP_10", "temperature","TM5_10","humidity", "TD_10", "eor") , remove = TRUE, convert = FALSE , extra = "warn", fill = "warn")
-  tempBBWnew$id <- tempBBWnew$eor <- tempBBWnew$TM5_10 <- tempBBWnew$TD_10 <- tempBBWnew$PP_10 <- NULL
-  tempBBWnew$dateTime <- format(as.POSIXct(tempBBWnew$dateTime, format= "%Y%m%d%H%M", tz="Etc/GMT-1"), "%Y-%m-%d %H:%M:%S", tz="Etc/GMT-1")
-  tempBBWnew$temperature <- as.numeric(as.character(tempBBWnew$temperature))
-  tempBBWnew$humidity <-  as.numeric(as.character(tempBBWnew$humidity))
-  tempBBWnew$QN <- as.numeric(as.character(tempBBWnew$QN))
-
-  #delete unnessecary temporary files
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten")
-  file.remove("tempBBWnew.zip")
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/Temperature")
-  filelist = list.files(pattern="*.txt$")
-  file.remove(paste0(filelist))
-
-  ###BBR
-
-  #download data from DWD ftp Server
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten")
-  url <- "ftp://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/recent/10minutenwerte_TU_00430_akt.zip"
-  destfile <- "tempBBRnew.zip"
-  download.file(url, destfile, quiet = FALSE)
-  #unzip BBR data
-  unzip("tempBBRnew.zip", files = NULL, list = FALSE, overwrite = TRUE,
-        junkpaths = FALSE, exdir = "//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/Temperature", unzip = "internal",
-        setTimes = FALSE)
-  #read table BBR
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/Temperature")
-  filelist = list.files(pattern="*.txt$")
-  datalist <- list()
-  for (i in 1:length(filelist))
-  {
-    datalist[[i]]<-read.delim2(filelist[i])
-  }
-  tempBBRnew  <- do.call("rbind" ,datalist)
-
-
-  #clean data set
-  tempBBRnew <- as.data.frame(tempBBRnew, row.names = NULL,
-                              responseName = "Freq", stringsAsFactors = F,header=FALSE,
-                              sep = ";", base = list(LETTERS))
-
-  tempBBRnew <- tidyr::separate(tempBBRnew, col=STATIONS_ID.MESS_DATUM...QN.PP_10.TT_10.TM5_10.RF_10.TD_10.eor, sep = ";", into =c( "id" , "dateTime", "QN", "PP_10", "temperature","TM5_10","humidity", "TD_10", "eor") , remove = TRUE, convert = FALSE , extra = "warn", fill = "warn")
-  tempBBRnew$id <- tempBBRnew$eor <- tempBBRnew$TM5_10 <- tempBBRnew$TD_10 <- tempBBRnew$PP_10 <- NULL
-  tempBBRnew$dateTime <- format(as.POSIXct(tempBBRnew$dateTime, format= "%Y%m%d%H%M", tz="Etc/GMT-1"), "%Y-%m-%d %H:%M:%S", tz="Etc/GMT-1")
-  tempBBRnew$temperature <- as.numeric(as.character(tempBBRnew$temperature))
-  tempBBRnew$humidity <-  as.numeric(as.character(tempBBRnew$humidity))
-  tempBBRnew$QN <- as.numeric(as.character(tempBBRnew$QN))
-
-  #delete unnessecary temporary files
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten")
-  file.remove("tempBBRnew.zip")
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/Temperature")
-  filelist = list.files(pattern="*.txt$")
-  file.remove(paste0(filelist))
-
-
-  #read old data and connect with new
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/RAW/_KlimaDWD/Temperature")
-  tempDatanew <- dplyr::right_join(tempBBRnew, tempBBWnew, by="dateTime")
-  names(tempDatanew) <- c("dateTime", "QN_BBR", "temperature_BBR", "humidity_BBR", "QN_BBW", "temperature_BBW", "humidity_BBW")
-
-  tempData <- read.delim2("tempData.txt", sep=";", dec =",")
-  tempData$dateTime <- format(as.POSIXct(tempData$dateTime, format= "%Y-%m-%d %H:%M:%S", tz="Etc/GMT-1"), "%Y-%m-%d %H:%M:%S", tz="Etc/GMT-1")
-  tempData <- dplyr::union(tempData, tempDatanew)
-  tempData[!duplicated(tempData$dateTime), ]
-  write.table(tempData, file = "tempData.txt",dec=",", sep = ";", quote = F, row.names = F)
-
+  # ***********************************  
 
 }
 
@@ -912,122 +926,6 @@ checkWeather <- function(tBeg, tEnd, dt,
   }
 }
 
-# look at rainfall for each site, multiple gauges
-checkRain <- function(rainDB, tBeg, tEnd, dt, diN)
-{
-  # filter data
-  {
-    tBeg    <- as.POSIXct(tBeg, format="%Y-%m-%d %H:%M", tz="Etc/GMT-1")
-    tEnd    <- as.POSIXct(tEnd, format="%Y-%m-%d %H:%M", tz="Etc/GMT-1")
-    rainSel <- filter(rainDB, dateTime >= tBeg & dateTime <= tEnd)
-  }
-
-  # make axes
-  {
-    tAx <- seq(tBeg, tEnd, by=dt)
-
-    # find maximum of all rain gauges
-    rainMax <- 0
-    for(i in 2:ncol(rainSel))
-    {
-      newMax  <- max(pull(rainSel, i), na.rm=TRUE)
-      rainMax <- ifelse(newMax > rainMax, newMax, rainMax)
-    }
-
-    # build axis
-    rainAx <- seq(0, rainMax, by=diN)
-  }
-
-  # plot BlnX
-  {
-    par(mar=c(3,4,1,3), mfcol=c(3,2))
-    plot(rainSel$dateTime, rainSel$BlnX, xlim=c(tBeg, tEnd), type="o", pch=20,
-         axes=FALSE, xlab="", ylab="", main=,
-         ylim=c(0, rainMax)); box()
-    eq <- bquote(paste("BlnX, ", h[N]   == .(sum(pull(rainSel, BlnX), na.rm=TRUE)), " mm"))
-    text(x=tEnd-0.01*(tEnd-tBeg), y=rainMax-0.1*rainMax, eq, adj=1, cex=1.5)
-    axis(1, at=tAx, labels=format(tAx, format="%H:%M\n%d-%m"), padj=.45, cex.axis=1.2)
-    axis(2, las=2, at=rainAx, labels=round(rainAx, digits=1))
-    mtext(expression(paste(h[N], " [mm/5min.]")), side=2, line=2)
-  }
-
-  # plot BlnXI
-  {
-    par(mar=c(3,4,1,3))
-    plot(rainSel$dateTime, rainSel$BlnXI, xlim=c(tBeg, tEnd), type="o", pch=20,
-         axes=FALSE, xlab="", ylab="", main=,
-         ylim=c(0, rainMax)); box()
-    eq <- bquote(paste("BlnXI, ", h[N]   == .(sum(pull(rainSel, BlnXI), na.rm=TRUE)), " mm"))
-    text(x=tEnd-0.01*(tEnd-tBeg), y=rainMax-0.1*rainMax, eq, adj=1, cex=1.5)
-    axis(1, at=tAx, labels=format(tAx, format="%H:%M\n%d-%m"), padj=.45, cex.axis=1.2)
-    axis(2, las=2, at=rainAx, labels=round(rainAx, digits=1))
-    mtext(expression(paste(h[N], " [mm/5min.]")), side=2, line=2)
-  }
-
-  # plot BlnIV
-  {
-    par(mar=c(3,4,1,3))
-    plot(rainSel$dateTime, rainSel$BlnIV, xlim=c(tBeg, tEnd), type="o", pch=20,
-         axes=FALSE, xlab="", ylab="", main=,
-         ylim=c(0, rainMax)); box()
-    eq <- bquote(paste("BlnIV, ", h[N]   == .(sum(pull(rainSel, BlnIV), na.rm=TRUE)), " mm"))
-    text(x=tEnd-0.01*(tEnd-tBeg), y=rainMax-0.1*rainMax, eq, adj=1, cex=1.5)
-    axis(1, at=tAx, labels=format(tAx, format="%H:%M\n%d-%m"), padj=.45, cex.axis=1.2)
-    axis(2, las=2, at=rainAx, labels=round(rainAx, digits=1))
-    mtext(expression(paste(h[N], " [mm/5min.]")), side=2, line=2)
-  }
-
-  # plot Owd
-  {
-    par(mar=c(3,4,1,3))
-    plot(rainSel$dateTime, rainSel$Owd, xlim=c(tBeg, tEnd), type="o", pch=20,
-         axes=FALSE, xlab="", ylab="", main=,
-         ylim=c(0, rainMax)); box()
-    addRain(raindat = rainSel, ymax=rainMax, scale=1, color="grey", rainGauge="BBW")
-    eq <- bquote(paste("Owd, ", h[N]   == .(sum(pull(rainSel, Owd), na.rm=TRUE)), " mm"))
-    text(x=tEnd-0.01*(tEnd-tBeg), y=rainMax-0.1*rainMax, eq, adj=1, cex=1.5)
-    eq <- bquote(paste("BBW, ", h[N]   == .(sum(pull(rainSel, BBW), na.rm=TRUE)), " mm"))
-    text(x=tEnd-0.01*(tEnd-tBeg), y=rainMax-0.3*rainMax, eq, adj=1, cex=1.5)
-    axis(1, at=tAx, labels=format(tAx, format="%H:%M\n%d-%m"), padj=.45, cex.axis=1.2)
-    axis(2, las=2, at=rainAx, labels=round(rainAx, digits=1))
-    mtext(expression(paste(h[N], " [mm/5min.]")), side=2, line=2)
-    lines(rainSel$dateTime, rainSel$Owd, type="o", pch=20)
-  }
-
-  # plot KöpI
-  {
-    par(mar=c(3,4,1,3))
-    plot(rainSel$dateTime, rainSel$KöpI, xlim=c(tBeg, tEnd), type="o", pch=20,
-         axes=FALSE, xlab="", ylab="", main=,
-         ylim=c(0, rainMax)); box()
-    addRain(raindat = rainSel, ymax=rainMax, scale=1, color="grey", rainGauge="BBW")
-    eq <- bquote(paste("KöpI, ", h[N]   == .(sum(pull(rainSel, KöpI), na.rm=TRUE)), " mm"))
-    text(x=tEnd-0.01*(tEnd-tBeg), y=rainMax-0.1*rainMax, eq, adj=1, cex=1.5)
-    eq <- bquote(paste("BBW, ", h[N]   == .(sum(pull(rainSel, BBW), na.rm=TRUE)), " mm"))
-    text(x=tEnd-0.01*(tEnd-tBeg), y=rainMax-0.3*rainMax, eq, adj=1, cex=1.5)
-    axis(1, at=tAx, labels=format(tAx, format="%H:%M\n%d-%m"), padj=.45, cex.axis=1.2)
-    axis(2, las=2, at=rainAx, labels=round(rainAx, digits=1))
-    mtext(expression(paste(h[N], " [mm/5min.]")), side=2, line=2)
-    lines(rainSel$dateTime, rainSel$KöpI, type="o", pch=20)
-  }
-
-  # plot Joh
-  {
-    par(mar=c(3,4,1,3))
-    plot(rainSel$dateTime, rainSel$Joh, xlim=c(tBeg, tEnd), type="o", pch=20,
-         axes=FALSE, xlab="", ylab="", main=,
-         ylim=c(0, rainMax)); box()
-    addRain(raindat = rainSel, ymax=rainMax, scale=1, color="grey", rainGauge="BBW")
-    eq <- bquote(paste("Joh, ", h[N]   == .(sum(pull(rainSel, Joh), na.rm=TRUE)), " mm"))
-    text(x=tEnd-0.01*(tEnd-tBeg), y=rainMax-0.1*rainMax, eq, adj=1, cex=1.5)
-    eq <- bquote(paste("BBW, ", h[N]   == .(sum(pull(rainSel, BBW), na.rm=TRUE)), " mm"))
-    text(x=tEnd-0.01*(tEnd-tBeg), y=rainMax-0.3*rainMax, eq, adj=1, cex=1.5)
-    axis(1, at=tAx, labels=format(tAx, format="%H:%M\n%d-%m"), padj=.45, cex.axis=1.2)
-    axis(2, las=2, at=rainAx, labels=round(rainAx, digits=1))
-    mtext(expression(paste(h[N], " [mm/5min.]")), side=2, line=2)
-    lines(rainSel$dateTime, rainSel$Joh, type="o", pch=20)
-  }
-}
 
 # read wind data base
 readWind <- function()
