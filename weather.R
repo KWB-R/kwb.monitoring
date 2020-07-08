@@ -24,6 +24,10 @@ updateRainDB <- function(rawdir,
   # are entered in tFalseRain. this will make the function avoid replacing those values with the
   # downloaded ones in case the user downloads the same time period again
 
+  # column names in internal rainDB come from rainDB on disk. 
+  # column name for KWB rain gauge must be 'KWB'
+  # first column in all data sources must be time stamps
+  
   # control locale for the name of months in German
   if(Sys.getlocale(category="LC_TIME") != "German_Germany.1252")
     Sys.setlocale(category="LC_TIME", locale="German_Germany.1252")
@@ -41,11 +45,11 @@ updateRainDB <- function(rawdir,
 
   # read rainDB
   {
-    rainDB <- read.table(paste(rawdir,"rainDB.txt", sep=''),
+    rainDB <- read.table(paste(rawdir, rainDBname, sep=''),
                          sep=";",
                          header=TRUE,
                          encoding="UTF-8",
-                         colClasses=c("character", rep("numeric", times=2)))
+                         colClasses=c("character", rep("numeric", times=3)))
   }
 
   # read BWB gauges for user-defined time window, format data and add to rainDB
@@ -83,8 +87,12 @@ updateRainDB <- function(rawdir,
       # loop over available dates
       for(i in 1:length(availUser))
       {
-        # to store daily data (since this is how they're stored on ftp server)
-        rainDay <- data.frame(dateTime=NA, BlnX=NA, BlnXI=NA)
+        # data frame to temporarily store daily data 
+        # (since this is how they're stored on ftp server)
+        rainDay <- as.data.frame(matrix(nrow=0, 
+                                        ncol=ncol(rainDB)-1,
+                                        dimnames=list(NULL, 
+                                                      names(rainDB)[names(rainDB) != 'KWB'])))
 
         # re-format date for pasting onto download string
         i2 <- format(availUser[i], "%y%m%d", tz="Etc/GMT-1")
@@ -103,20 +111,23 @@ updateRainDB <- function(rawdir,
         # split content into lines
         content <- strsplit(url_content, split="\n")[[1]]
 
-        # grab and split column names (1st element)
-        colNames <- content[1]
-        colNames <- strsplit(x=colNames, split='\t')[[1]]
-        colNames <- gsub(pattern = " ", replacement = "", x = colNames)  # remove whitespace
+        # grab and split column names (1st element), removing 1st column name (time stamps)
+        cnFTP <- content[1]
+        cnFTP <- strsplit(x=cnFTP, split='\t')[[1]][-1]
+        
+        # remove whitespace from column names on downloaded data and rainDB
+        cnFTP <- gsub(pattern=" ", replacement="", x=cnFTP)
+        cnRainDB <- gsub(pattern=" ", replacement="", x=names(rainDB)[-1])
 
         # rempove 1st element (headers)
-        content <- content[2:length(content)]
+        content <- content[-1]
 
-        # make data.frame for current day including only rain gauges
+        # make data.frame for current day, including only rain gauges
         # contained in the version of rainDB on disk:
 
         # determine which columns to use
-        useCol <- names(rainDB)[2:ncol(rainDB)]
-        useCol <- grep(pattern=useCol[1], x=colNames) 
+        useCol <- match(cnRainDB, cnFTP)
+        useCol <- useCol[!is.na(useCol)]
 
         # since BWB data does not always have the same number of rows, loop length
         # must be determined by finding the row number of the last time stamp of
@@ -153,7 +164,7 @@ updateRainDB <- function(rawdir,
         # split content
         for(j in 1:length(loopRows)){
           contentsplt  <- strsplit(content[loopRows[j]], split="\t")[[1]]
-          rowj         <- contentsplt[c(1, useCol)]
+          rowj         <- contentsplt[c(2, useCol)]
           rainDay[j, ] <- rowj
         }
 
@@ -164,11 +175,12 @@ updateRainDB <- function(rawdir,
         downloadedRain <- rbind(downloadedRain, rainDay)
       }
 
-      # format decimal point
-      for(j in 2:7){
-        downloadedRain[[j]] <- as.numeric(gsub(",", ".", downloadedRain[[j]]))
-      }
-
+      # change decimal separator from ',' to '.'
+      downloadedRain <- data.frame(lapply(X=downloadedRain,
+                                          FUN=function(a){gsub(pattern=',', 
+                                                               replacement='.',
+                                                               x=a)}))
+      
       # bring time axis of downloaded BWB data to winter time (bringing summer time stamps
       # (tz="Europe/Berlin") to winter time (tz="Etc/GMT-1"). this is not necessary for KWB
       # rain gauge, since logger configuration is always winter time
@@ -177,31 +189,15 @@ updateRainDB <- function(rawdir,
         # in Berlin/Europe time zone, i.e., containing the shift, to match the BWB data
         {
           tsSummer <- list(
-            sum2017=format(seq(from=as.POSIXct("26-Mrz-17 03:00:00 +0200",
-                                               format="%d-%b-%y %H:%M:%S %z",
-                                               tz="Europe/Berlin"),
-                               to=as.POSIXct("29-Okt-17 02:55:00 +0200",
-                                             format="%d-%b-%y %H:%M:%S %z",
-                                             tz="Europe/Berlin"),
-                               by=300),
-                           format="%d-%b-%y %H:%M:%S"),
-            sum2018=format(seq(from=as.POSIXct("25-Mrz-18 03:00:00 +0200",
-                                               format="%d-%b-%y %H:%M:%S %z",
-                                               tz="Europe/Berlin"),
-                               to=as.POSIXct("28-Okt-18 02:55:00 +0200",
-                                             format="%d-%b-%y %H:%M:%S %z",
-                                             tz="Europe/Berlin"),
-                               by=300),
-                           format="%d-%b-%y %H:%M:%S"),
-            sum2019=format(seq(from=as.POSIXct("31-Mrz-19 03:00:00 +0200",
-                                               format="%d-%b-%y %H:%M:%S %z",
-                                               tz="Europe/Berlin"),
-                               to=as.POSIXct("27-Okt-19 02:55:00 +0200",
-                                             format="%d-%b-%y %H:%M:%S %z",
-                                             tz="Europe/Berlin"),
-                               by=300),
-                           format="%d-%b-%y %H:%M:%S"),
             sum2020=format(seq(from=as.POSIXct("29-Mrz-20 03:00:00 +0200",
+                                               format="%d-%b-%y %H:%M:%S %z",
+                                               tz="Europe/Berlin"),
+                               to=as.POSIXct("25-Okt-20 02:55:00 +0200",
+                                             format="%d-%b-%y %H:%M:%S %z",
+                                             tz="Europe/Berlin"),
+                               by=300),
+                           format="%d-%b-%y %H:%M:%S"),
+            sum2021=format(seq(from=as.POSIXct("29-Mrz-20 03:00:00 +0200",
                                                format="%d-%b-%y %H:%M:%S %z",
                                                tz="Europe/Berlin"),
                                to=as.POSIXct("25-Okt-20 02:55:00 +0200",
