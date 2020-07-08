@@ -388,19 +388,21 @@ updateRainDB <- function(rawdir,
 
 
 # read BaSaR rainfall data base
-readRain <- function()
-{
-  # setwd("xxxxx")
-  setwd("c:/kwb/BaSaR/_Daten/RAW/_Regen")
-  rain <- read.table("rainDB.txt",
+readRain <- function(rawdir, rainDBname){
+  
+  rain <- read.table(paste(rawdir, rainDBname, sep=''),
                      sep=";",
                      header=TRUE,
                      encoding="UTF-8",
-                     colClasses=c("character", rep("numeric", times=7)))
+                     colClasses="character")
   
   rain$dateTime <- as.POSIXct(rain$dateTime,
                               format="%Y-%m-%d %H:%M",
                               tz="Etc/GMT-1")
+  
+  rain[2:ncol(rain)] <- apply(rain[2:ncol(rain)], FUN=as.numeric, MARGIN=2)
+  
+  
   return(dplyr::tbl_df(rain))
 }
 
