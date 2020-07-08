@@ -64,14 +64,14 @@ updateRainDB <- function(rawdir,
       availDates <- unlist(strsplit(getURL('ftp://ftp.kompetenz-wasser.de/',
                                            userpwd=login),
                                     "\r*\n"))
-      xx         <- as.list(availDates[4:length(availDates)])
+      xx <- as.list(availDates[4:length(availDates)])
       availDates <- unlist(lapply(X=xx, FUN=substr, start=nchar(xx)-14, stop=nchar(xx)-9))
       availDates <- lapply(X=availDates,FUN=as.Date, format="%y%m%d")
       availDates <- do.call("c", availDates)
 
       # compare user-defined time frame with available dates
-      index     <- match(userTW, availDates)
-      index     <- index[!is.na(index)]
+      index <- match(userTW, availDates)
+      index <- index[!is.na(index)]
       availUser <- availDates[index]
 
       if(length(index)==0) stop("desired data are unavailable on ftp server")
