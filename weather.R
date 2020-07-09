@@ -8,7 +8,7 @@ updateRainDB <- function(rawdir,
                          D2Wsid,
                          summerTime,
                          skip,
-                         overwriteOldrainDB){
+                         overwriteOldDB){
   # the function downloads a user-defined time period (days) and adds this data to the corresponding
   # rows of rainDB.
   # data sources are KWB ftp server for BWB gauges (Owd, KöpI, Joh, BlnX, BlnIV, BlnXI) and
@@ -367,26 +367,23 @@ updateRainDB <- function(rawdir,
   }
   
   # write new rainDB
+  if(overwriteOldDB)
   {
-    if(overwriteOldrainDB)
-    {
-      write.table(rainDB,
-                  file=paste0(rawdir, rainDBname),
-                  quote=FALSE,
-                  sep=";",
-                  row.names=FALSE,
-                  fileEncoding="UTF-8")
-    } else {
-      write.table(rainDB,
-                  file=paste0(rawdir, "rainDB_new.txt"),
-                  quote=FALSE,
-                  sep=";",
-                  row.names=FALSE,
-                  fileEncoding="UTF-8")
-    }
+    write.table(rainDB,
+                file=paste0(rawdir, rainDBname),
+                quote=FALSE,
+                sep=";",
+                row.names=FALSE,
+                fileEncoding="UTF-8")
+  } else {
+    write.table(rainDB,
+                file=paste0(rawdir, "rainDB_new.txt"),
+                quote=FALSE,
+                sep=";",
+                row.names=FALSE,
+                fileEncoding="UTF-8")
   }
 }
-
 
 # read BaSaR rainfall data base
 readRain <- function(rawdir, rainDBname){
@@ -451,308 +448,110 @@ checkRain <- function(rainData, tBeg, tEnd, dt, dy, gauges, cols, pch, lty){
 }
 
 # download temperature from DWD
-updateTempDB <- function(rawdir,
-                         tempDBname,
-                         dwdStationID){
+updateWeatherDB <- function(rawdir, dbName, 
+                            dwdStationID, dwdCols,
+                            overwriteOldDB){
   
-  # make path to tempDB on disk
-  tdbPath <- paste(rawdir, tempDBname, sep='')
+  # as in rainDB, first column must be time stamps
+  # dwdCols must be in same order as in target data base (db)
   
-  # read tempDB on disk
-  tempDB <- read.table(tdbPath, 
-                       header=TRUE,
-                       sep=';',
-                       colClasses='character')
+  # set working directory
+  setwd(rawdir)
+  
+  # read db on disk
+  db <- read.table(dbName, 
+                   header=TRUE,
+                   sep=';',
+                   colClasses='character')
   
   # format columns
-  tempDB[2:ncol(tempDB)] <- apply(X=tempDB[2:ncol(tempDB)], 
+  db[2:ncol(db)] <- apply(X=db[2:ncol(db)], 
                   MARGIN=2,
                   FUN=as.numeric)
   
   # download data from DWD ftp Server
-  setwd(rawdir)
-  url <- paste('ftp://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/recent/10minutenwerte_TU_00',
-               dwdStationID, '_akt.zip',
-               sep='')
-  destfile <- "tempDWD.zip"
+  if(grepl(pattern='temp', x=dbName)){
+    url <- paste('ftp://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/recent/10minutenwerte_TU_00',
+                 dwdStationID, '_akt.zip',
+                 sep='')
+  } else {
+    if(grepl(pattern='wind', x=dbName)){
+      url <- paste('ftp://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/wind/recent/10minutenwerte_wind_00', 
+                   dwdStationID, '_akt.zip',
+                   sep='')
+    } else {
+      if(grepl(pattern='solar', x=dbName)){
+        url <- paste('ftp://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/solar/recent/10minutenwerte_SOLAR_00',
+                     dwdStationID, '_akt.zip',
+                     sep='')
+      } else {
+        stop('dbName must contain either "wind", "temp" or "solar"')
+      }
+    }
+  }
+  
+  destfile <- 'download.zip'
   download.file(url, destfile, quiet=TRUE)
-  unzip('tempDWD.zip', files = NULL, list = FALSE, overwrite = TRUE,
+  unzip('download.zip', files = NULL, list = FALSE, overwrite = TRUE,
         junkpaths = FALSE, exdir = getwd(), unzip = "internal",
         setTimes = FALSE)
-  file.remove('tempDWD.zip')
+  file.remove('download.zip')
   unzipped = list.files(pattern="produkt_")
   
   # read downloaded table 
-  tempDownloaded <- read.table(unzipped,
-                               header=TRUE,
-                               sep=';',
-                               colClasses='character',
-                               col.names=c("stationID" , "dateTime", "QN", "PP_10", 
-                                           "Temperature", "TM5_10","Relhum", 
-                                           "TD_10", "eor"),
-                               stringsAsFactors=FALSE)
+  downloaded <- read.table(unzipped,
+                           header=TRUE,
+                           sep=';',
+                           colClasses='character',
+                           stringsAsFactors=FALSE)
   
   # remove unzipped file
   file.remove(unzipped)
   
+  # leave only user-selected columns in downloaded
+  downloaded <- downloaded[, dwdCols]
+  
+  # 
+  names(downloaded) <- names(db)
+  
   # format dateTime
-  tempDownloaded$dateTime <- as.character(format(as.POSIXct(tempDownloaded$dateTime,
-                                                            format="%Y%m%d%H%M", 
-                                                            tz="Etc/GMT-1"), 
-                                                 "%Y-%m-%d %H:%M", 
-                                                 tz="Etc/GMT-1"))
+  downloaded[[1]] <- as.character(format(as.POSIXct(downloaded[[1]],
+                                                    format="%Y%m%d%H%M", 
+                                                    tz="Etc/GMT-1"), 
+                                         "%Y-%m-%d %H:%M", 
+                                         tz="Etc/GMT-1"))
   
-  # match time stamps and columns between tempDB and tempDownloaded in order to
-  # keep only the rows in tempDownloaded that match tempDB
-  rowIndex <- match(tempDB$dateTime, tempDownloaded$dateTime)
+  # match time stamps between db on disk and downloaded in order to
+  # keep only the rows in donwloaded that match db
+  rowIndex <- match(db$dateTime, downloaded[[1]])
   rowIndex <- rowIndex[!is.na(rowIndex)]
-  colIndex <- match(names(tempDB), names(tempDownloaded))
-  colIndex <- colIndex[!is.na(colIndex)]
-  tempDownloaded <- tempDownloaded[rowIndex, colIndex]
+  downloaded <- downloaded[rowIndex, ]
   
-  # assign the new tempDownloaded to the corresponding rows in tempDB
-  index <- match(tempDownloaded$dateTime, tempDB$dateTime)
+  # assign the new downloaded to the corresponding rows in db
+  index <- match(downloaded$dateTime, db$dateTime)
   index <- index[!is.na(index)]
-  tempDB[index, -1] <- tempDownloaded[, -1]
+  db[index, -1] <- downloaded[, -1]
   
-  
-  # ***********************************  
-
+  # write new tempDB
+  if(overwriteOldDB){
+    write.table(db,
+                file=paste(rawdir, dbName, sep=''),
+                quote=FALSE,
+                sep=";",
+                row.names=FALSE,
+                fileEncoding="UTF-8")
+  } else {
+    write.table(db,
+                file=paste(rawdir, 'new_',  dbName, sep=''),
+                quote=FALSE,
+                sep=";",
+                row.names=FALSE,
+                fileEncoding="UTF-8")
+  }
 }
 
-# download wind from DWD
-download_windData <- function() #BBW=427; BBR=430
-{
-  ###BBW
-
-  #download data from DWD ftp Server
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten")
-  url <- "ftp://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/wind/recent/10minutenwerte_wind_00427_akt.zip"
-  destfile <- "windBBWnew.zip"
-  download.file(url, destfile, quiet = FALSE)
-  #unzip BBW data
-  unzip("windBBWnew.zip", files = NULL, list = FALSE, overwrite = TRUE,
-        junkpaths = FALSE, exdir = "//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/Wind", unzip = "internal",
-        setTimes = FALSE)
-  #read table BBW
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/Wind")
-  filelist = list.files(pattern="*.txt$")
-  datalist <- list()
-  for (i in 1:length(filelist))
-  {
-    datalist[[i]]<-read.delim2(filelist[i])
-  }
-  windBBWnew  <- do.call("rbind" ,datalist)
 
 
-  #clean data set
-  windBBWnew <- as.data.frame(windBBWnew, row.names = NULL,
-                              responseName = "Freq", stringsAsFactors = F,header=FALSE,
-                              sep = ";", base = list(LETTERS))
-
-  windBBWnew <- tidyr::separate(windBBWnew, col=STATIONS_ID.MESS_DATUM...QN.FF_10.DD_10.eor  , sep = ";", into =c( "id" , "dateTime", "QN", "speed", "direction","eor") , remove = TRUE, convert = FALSE , extra = "warn", fill = "warn")
-  windBBWnew$eor <- windBBWnew$id <- NULL
-  windBBWnew$dateTime <- format(as.POSIXct(windBBWnew$dateTime, format= "%Y%m%d%H%M", tz="Etc/GMT-1"), "%Y-%m-%d %H:%M:%S", tz="Etc/GMT-1")
-  windBBWnew$speed <- as.numeric(as.character(windBBWnew$speed))
-  windBBWnew$direction <-  as.numeric(as.character(windBBWnew$direction))
-  windBBWnew$QN <- as.numeric(as.character(windBBWnew$QN))
-
-  #delete unnessecary files
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten")
-  file.remove("windBBWnew.zip")
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/Wind")
-  filelist = list.files(pattern="*.txt$")
-  file.remove(paste0(filelist))
-
-
-  ###BBR
-
-  #download data from DWD ftp Server
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten")
-  url <- "ftp://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/wind/recent/10minutenwerte_wind_00430_akt.zip"
-  destfile <- "windBBRnew.zip"
-  download.file(url, destfile, quiet = FALSE)
-  #unzip BBR data
-  unzip("windBBRnew.zip", files = NULL, list = FALSE, overwrite = TRUE,
-        junkpaths = FALSE, exdir = "//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/Wind", unzip = "internal",
-        setTimes = FALSE)
-  #read table BBR
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/Wind")
-  filelist = list.files(pattern="*.txt$")
-  datalist <- list()
-  for (i in 1:length(filelist))
-  {
-    datalist[[i]]<-read.delim2(filelist[i])
-  }
-  windBBRnew  <- do.call("rbind" ,datalist)
-
-
-  #clean data set
-  windBBRnew <- as.data.frame(windBBRnew, row.names = NULL,
-                              responseName = "Freq", stringsAsFactors = F,header=FALSE,
-                              sep = ";", base = list(LETTERS))
-
-  windBBRnew <- tidyr::separate(windBBRnew, col=STATIONS_ID.MESS_DATUM...QN.FF_10.DD_10.eor  , sep = ";", into =c( "id" , "dateTime", "QN", "speed", "direction","eor") , remove = TRUE, convert = FALSE , extra = "warn", fill = "warn")
-  windBBRnew$eor <- windBBRnew$id <- NULL
-  windBBRnew$dateTime <- format(as.POSIXct(windBBRnew$dateTime, format= "%Y%m%d%H%M", tz="Etc/GMT-1"), "%Y-%m-%d %H:%M:%S", tz="Etc/GMT-1")
-  windBBRnew$speed <- as.numeric(as.character(windBBRnew$speed))
-  windBBRnew$direction <-  as.numeric(as.character(windBBRnew$direction))
-  windBBRnew$QN <- as.numeric(as.character(windBBRnew$QN))
-
-  #delete unnessecary files
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten")
-  file.remove("windBBRnew.zip")
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/Wind")
-  filelist = list.files(pattern="*.txt$")
-  file.remove(paste0(filelist))
-
-
-  #load old data and bind with new
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/RAW/_KlimaDWD/Wind")
-  windDatanew <- dplyr::left_join(windBBRnew, windBBWnew, by="dateTime")
-  names(windDatanew) <- c("dateTime", "QN_BBR", "speed_BBR", "direction_BBR", "QN_BBW", "speed_BBW", "direction_BBW")
-
-  windData <- read.delim2("windData.txt", sep=";", dec =",")
-  windData$dateTime <- format(as.POSIXct(windData$dateTime, format= "%Y-%m-%d %H:%M:%S", tz="Etc/GMT-1"), "%Y-%m-%d %H:%M:%S", tz="Etc/GMT-1")
-  windData <- dplyr::union(windData, windDatanew)
-  windData[!duplicated(windData$dateTime), ]
-  write.table(windData, file = "windData.txt",dec=",", sep = ";", quote = F, row.names = F)
-
-}
-
-# download solar from DWD
-download_solarData <- function() #BBW=427; BBR=430
-{
-  ###BBW
-
-  #download data from DWD ftp Server
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten")
-  url <- "ftp://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/solar/recent/10minutenwerte_SOLAR_00427_akt.zip"
-  destfile <- "solarBBWnew.zip"
-  download.file(url, destfile, quiet = FALSE)
-
-  #unzip BBW data
-  unzip("solarBBWnew.zip", files = NULL, list = FALSE, overwrite = TRUE,
-        junkpaths = FALSE,
-        exdir = "//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/solar", unzip = "internal",
-        setTimes = FALSE)
-
-  #read table BBW
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/solar")
-  filelist = list.files(pattern="*.txt$")
-  datalist <- list()
-  for (i in 1:length(filelist))
-  {
-    datalist[[i]]<-read.delim2(filelist[i])
-  }
-  solarBBWnew  <- do.call("rbind" ,datalist)
-
-  #clean data set
-  solarBBWnew <- as.data.frame(solarBBWnew, row.names = NULL,
-                               responseName = "Freq", stringsAsFactors = F,header=FALSE,
-                               sep = ";", base = list(LETTERS))
-
-  solarBBWnew <- tidyr::separate(solarBBWnew,
-                                 col=STATIONS_ID.MESS_DATUM...QN.DS_10.GS_10.SD_10.LS_10.eor,
-                                 sep = ";",
-                                 into =c( "id" ,
-                                          "dateTime",
-                                          "QN_BBW",
-                                          "direct_BBW",
-                                          "global_BBW",
-                                          "sunh_BBW",
-                                          "atmos_Gegenstrahlung_BBW",
-                                          "eor") ,
-                                 remove = TRUE,
-                                 convert = FALSE,
-                                 extra = "warn",
-                                 fill = "warn")
-  solarBBWnew$dateTime <- format(as.POSIXct(solarBBWnew$dateTime, format= "%Y%m%d%H%M", tz="Etc/GMT-1"), "%Y-%m-%d %H:%M:%S", tz="Etc/GMT-1")
-  solarBBWnew$eor <- solarBBWnew$id <- NULL
-
-  #delete unnessecary temporary files
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten")
-  file.remove("solarBBWnew.zip")
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/solar")
-  filelist = list.files(pattern="*.txt$")
-  file.remove(paste0(filelist))
-
-  ###BBR
-
-  #download data from DWD ftp Server
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten")
-  url <- "ftp://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/solar/recent/10minutenwerte_SOLAR_00430_akt.zip"
-  destfile <- "solarBBRnew.zip"
-  download.file(url, destfile, quiet = FALSE)
-
-  #unzip BBR data
-  unzip("solarBBRnew.zip", files = NULL, list = FALSE, overwrite = TRUE,
-        junkpaths = FALSE, exdir = "//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/solar", unzip = "internal",
-        setTimes = FALSE)
-
-  #read table BBR
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/solar")
-  filelist = list.files(pattern="*.txt$")
-  datalist <- list()
-  for (i in 1:length(filelist))
-  {
-    datalist[[i]]<-read.delim2(filelist[i])
-  }
-  solarBBRnew  <- do.call("rbind" ,datalist)
-
-  #clean data set
-  solarBBRnew <- as.data.frame(solarBBRnew, row.names = NULL,
-                               responseName = "Freq", stringsAsFactors = F,header=FALSE,
-                               sep = ";", base = list(LETTERS))
-
-  solarBBRnew <- tidyr::separate(solarBBRnew,
-                                 col=STATIONS_ID.MESS_DATUM...QN.DS_10.GS_10.SD_10.LS_10.eor,
-                                 sep = ";",
-                                 into =c( "id" ,
-                                          "dateTime",
-                                          "QN_BBR",
-                                          "direct_BBR",
-                                          "global_BBR",
-                                          "sunh_BBR",
-                                          "atmos_Gegenstrahlung_BBR",
-                                          "eor"),
-                                 remove = TRUE,
-                                 convert = FALSE,
-                                 extra = "warn",
-                                 fill = "warn")
-  solarBBRnew$dateTime <- format(as.POSIXct(solarBBRnew$dateTime,
-                                            format= "%Y%m%d%H%M",
-                                            tz="Etc/GMT-1"),
-                                 "%Y-%m-%d %H:%M:%S", tz="Etc/GMT-1")
-  solarBBRnew$eor <- solarBBRnew$id <- NULL
-
-  #delete unnessecary temporary files
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten")
-  file.remove("solarBBRnew.zip")
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/OTHER/solar")
-  filelist = list.files(pattern="*.txt$")
-  file.remove(paste0(filelist))
-
-  #load old data and bind with new
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/RAW/_KlimaDWD/solar")
-  solarDatanew <- dplyr::right_join(solarBBRnew, solarBBWnew, by="dateTime")
-
-  for(i in 1:ncol(solarDatanew)){
-    solarDatanew[[i]] <- as.character(solarDatanew[[i]])
-  }
-
-
-  solarData <- read.delim2("solarData.txt", sep=";", dec =",")
-  solarData$dateTime <- format(as.POSIXct(solarData$dateTime, format= "%Y-%m-%d %H:%M:%S", tz="Etc/GMT-1"), "%Y-%m-%d %H:%M:%S", tz="Etc/GMT-1")
-
-  for(i in 1:ncol(solarData)){
-    solarData[[i]] <- as.character(solarData[[i]])
-  }
-
-  solarData <- dplyr::union(solarData, solarDatanew)
-  solarData[!duplicated(solarData$dateTime), ]
-  write.table(solarData, file = "solarData.txt",dec=",", sep = ";", quote = F, row.names = F)
-}
 
 # plot and compute statistics for weather data, filtering out time intervals without rain
 # within the event. tBeg and tEnd are the start and end time of the full event, not the
