@@ -48,7 +48,7 @@ updateRainDB <- function(rawdir,
                        sep=";",
                        header=TRUE,
                        encoding="UTF-8",
-                       colClasses=c("character", rep("numeric", times=3)),
+                       colClasses="character",
                        stringsAsFactors=FALSE)
   
   # read BWB gauges for user-defined time window, format data and add to rainDB
@@ -386,7 +386,7 @@ updateRainDB <- function(rawdir,
 }
 
 # read BaSaR rainfall data base
-readRain <- function(rawdir, rainDBname){
+readRain <- function(rawdir, rainDBname, naStrings){
   
   # make path to file
   rdbPath <- paste(rawdir, rainDBname, sep='')
@@ -400,19 +400,21 @@ readRain <- function(rawdir, rainDBname){
                      sep=";",
                      header=TRUE,
                      encoding="UTF-8",
-                     colClasses="character")
+                     colClasses="character",
+                     na.strings=naStrings)
   
   rain$dateTime <- as.POSIXct(rain$dateTime,
                               format="%Y-%m-%d %H:%M",
                               tz="Etc/GMT-1")
   
   rain[2:ncol(rain)] <- apply(rain[2:ncol(rain)], FUN=as.numeric, MARGIN=2)
-  
+
   return(rain)
 }
 
 # look at rainfall for each site, multiple gauges
-checkRain <- function(rainData, tBeg, tEnd, dt, dy, gauges, cols, pch, lty){
+checkRain <- function(rainData, tBeg, tEnd, dt, dy, gauges, col, pch, lty){
+  
   # filter data
     tBeg <- as.POSIXct(tBeg, format="%Y-%m-%d %H:%M", tz="Etc/GMT-1")
     tEnd <- as.POSIXct(tEnd, format="%Y-%m-%d %H:%M", tz="Etc/GMT-1")
@@ -433,7 +435,7 @@ checkRain <- function(rainData, tBeg, tEnd, dt, dy, gauges, cols, pch, lty){
     
     for(i in 1:length(gauges)){
       lines(rainSel[, c('dateTime', gauges[i])],
-            col=cols[i], pch=pch[i])
+            col=col[i], pch=pch[i])
     }
     legend(x=par('usr')[2]-(par('usr')[2]-par('usr')[1])*0.3, 
            y=par('usr')[4]-(par('usr')[4]-par('usr')[3])*0.1,
@@ -550,33 +552,85 @@ updateWeatherDB <- function(rawdir, dbName,
   }
 }
 
+# read wind data base
+readWind <- function()
+{
+  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/RAW/_KlimaDWD/Wind")
+  
+  
+  windData <- tbl_df(read.table("windData.txt", header=TRUE,
+                                dec=",", sep =";",
+                                colClasses=c("character", rep("numeric", times=6))))
+  
+  windData$dateTime <- as.POSIXct(windData$dateTime,
+                                  format="%Y-%m-%d %H:%M",
+                                  tz="Etc/GMT-1")
+  
+  return(windData)
+}
 
+# read temperature data base
+readTemp <- function()
+{
+  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/RAW/_KlimaDWD/Temperature")
+  
+  tempdData <- tbl_df(read.table("tempData.txt", header=TRUE,
+                                 dec=",", sep =";",
+                                 colClasses=c("character", rep("numeric", times=6))))
+  
+  tempdData$dateTime <- as.POSIXct(tempdData$dateTime,
+                                   format="%Y-%m-%d %H:%M",
+                                   tz="Etc/GMT-1")
+  
+  return(tbl_df(tempdData))
+}
 
+# read solar data base
+readSolar <- function()
+{
+  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/RAW/_KlimaDWD/solar")
+  
+  solarData <- tbl_df(read.table("solarData.txt", header=TRUE,
+                                 dec=".", sep =";",
+                                 colClasses = c("character",
+                                                rep("numeric", times=10)),
+                                 na.strings = "-999"))
+  
+  solarData$dateTime <- as.POSIXct(solarData$dateTime,
+                                   format="%Y-%m-%d %H:%M",
+                                   tz="Etc/GMT-1")
+  
+  return(solarData)
+}
 
 # plot and compute statistics for weather data, filtering out time intervals without rain
 # within the event. tBeg and tEnd are the start and end time of the full event, not the
 # individual parts
-checkWeather <- function(tBeg, tEnd, dt,
-                         rainDB, windDB, tempDB,
-                         rainGaugeBBW, rainGaugeBBR,
+checkWeather <- function(rawdir, 
+                         tBeg, tEnd, dt,
+                         rainDBname, windDBname, tempDBname,
                          rainScale)
 {
   # format start and end times
   tEnd <- as.POSIXct(tEnd, format = "%Y-%m-%d %H:%M", tz="Etc/GMT-1")
   tBeg <- as.POSIXct(tBeg, format = "%Y-%m-%d %H:%M", tz="Etc/GMT-1")
 
+  # make file paths
+  rainDBpath <- paste(rawdir, rainDBname, sep='')
+  windDBpath <- paste(rawdir, windDBname, sep='') 
+  tempDBpath <- paste(rawdir, tempDBname, sep='')
+  
+  
   # format wind and temperature dateTime
-  {
     windDB$dateTime <- as.POSIXct(windDB$dateTime,
                                   tz="Etc/GMT-1",
                                   format="%Y-%m-%d %H:%M:%S")
     tempDB$dateTime <- as.POSIXct(tempDB$dateTime,
                                   tz="Etc/GMT-1",
                                   format = "%Y-%m-%d %H:%M:%S")
-  }
+  
 
   # grab only desired event
-  {
     rainEvent    <- filter(rainDB, dateTime >= tBeg & dateTime <= tEnd)
     windEvent    <- filter(windDB, dateTime >= tBeg & dateTime <= tEnd)
     tempEvent    <- filter(tempDB, dateTime >= tBeg & dateTime <= tEnd)
@@ -586,7 +640,7 @@ checkWeather <- function(tBeg, tEnd, dt,
     windBBWevent <- dplyr::select(windEvent, dateTime, speed=speed_BBW, direction=direction_BBW)
     tempBBRevent <- dplyr::select(tempEvent, dateTime, tBBR=temperature_BBR)
     tempBBWevent <- dplyr::select(tempEvent, dateTime, tBBW=temperature_BBW)
-  }
+  
 
   # bring all data to same time axis though linear interpolation
   {
@@ -726,56 +780,6 @@ checkWeather <- function(tBeg, tEnd, dt,
 }
 
 
-# read wind data base
-readWind <- function()
-{
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/RAW/_KlimaDWD/Wind")
-
-
-  windData <- tbl_df(read.table("windData.txt", header=TRUE,
-                                dec=",", sep =";",
-                                colClasses=c("character", rep("numeric", times=6))))
-
-  windData$dateTime <- as.POSIXct(windData$dateTime,
-                                  format="%Y-%m-%d %H:%M",
-                                  tz="Etc/GMT-1")
-
-  return(windData)
-}
-
-# read temperature data base
-readTemp <- function()
-{
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/RAW/_KlimaDWD/Temperature")
-
-  tempdData <- tbl_df(read.table("tempData.txt", header=TRUE,
-                                 dec=",", sep =";",
-                                 colClasses=c("character", rep("numeric", times=6))))
-
-  tempdData$dateTime <- as.POSIXct(tempdData$dateTime,
-                                   format="%Y-%m-%d %H:%M",
-                                   tz="Etc/GMT-1")
-
-  return(tbl_df(tempdData))
-}
-
-# read solar data base
-readSolar <- function()
-{
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/RAW/_KlimaDWD/solar")
-
-  solarData <- tbl_df(read.table("solarData.txt", header=TRUE,
-                                 dec=".", sep =";",
-                                 colClasses = c("character",
-                                                rep("numeric", times=10)),
-                                 na.strings = "-999"))
-
-  solarData$dateTime <- as.POSIXct(solarData$dateTime,
-                                   format="%Y-%m-%d %H:%M",
-                                   tz="Etc/GMT-1")
-
-  return(solarData)
-}
 
 # add rain to existing plot as upside-down bars
 addRain <- function(raindat, ymax, scale, color, rainGauge)
