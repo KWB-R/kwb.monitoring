@@ -489,7 +489,7 @@ updateWeatherDB <- function(rawdir, dbName,
 }
 
 # read weather data base
-readWeather <- function(rawdir, dbName, naStrings){
+readWeatherDB <- function(rawdir, dbName, naStrings){
   
   # make path to weather data base (db)
   dbPath <- paste(rawdir, dbName, sep='')
