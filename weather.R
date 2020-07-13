@@ -1,4 +1,4 @@
-# function to grab rainfall data from ftp and d2w and add it to BaSaR rain data base "rainDB.txt".
+# function to grab rainfall data from ftp and d2w and add it to rain data base
 updateRainDB <- function(rawdir,
                          rainDBname,
                          tBeg,
@@ -41,7 +41,7 @@ updateRainDB <- function(rawdir,
                                   format="%d.%m.%Y %H:%M:%S",
                                   tz="Etc/GMT-1"),
                        format="%Y-%m-%d %H:%M")
-
+  
   # read rainDB
   rdbPath <- paste(rawdir, rainDBname, sep='')
   rainDB <- read.table(rdbPath,
@@ -60,7 +60,7 @@ updateRainDB <- function(rawdir,
       userTW <- seq(from=as.Date(tBeg, format="%Y%m%d"),
                     to=as.Date(tEnd, format="%Y%m%d"),
                     by=1)+1 # +1 because on ftp server, rain data for day i are in file named i+1
-
+      
       # read list of available files
       availDates <- unlist(strsplit(getURL('ftp://ftp.kompetenz-wasser.de/',
                                            userpwd=login),
@@ -69,20 +69,20 @@ updateRainDB <- function(rawdir,
       availDates <- unlist(lapply(X=xx, FUN=substr, start=nchar(xx)-14, stop=nchar(xx)-9))
       availDates <- lapply(X=availDates,FUN=as.Date, format="%y%m%d")
       availDates <- do.call("c", availDates)
-
+      
       # compare user-defined time frame with available dates
       index <- match(userTW, availDates)
       index <- index[!is.na(index)]
       availUser <- availDates[index]
-
+      
       if(length(index)==0) stop("desired data are unavailable on ftp server")
     }
-
+    
     # download available data from user time window and add to output data.frame
     {
       # make empty data frame for holding downloaded data from user-defined time window
       downloadedRain <- data.frame()
-
+      
       # loop over available dates
       for(i in 1:length(availUser)){
         
@@ -92,24 +92,24 @@ updateRainDB <- function(rawdir,
                                         ncol=ncol(rainDB)-1,
                                         dimnames=list(NULL, 
                                                       names(rainDB)[names(rainDB) != 'KWB'])))
-
+        
         # re-format date for pasting onto download string
         i2 <- format(availUser[i], "%y%m%d", tz="Etc/GMT-1")
         i2 <- format(availUser[i], "%y%m%d", tz="Europe/Berlin")
-
+        
         # make download string
         read_url <- paste0('ftp://ftp.kompetenzwasser.de/',
                            "Regenschreiber_",
                            i2,
                            "_0810.txt")
-
+        
         # read file from ftp server
         url_content <- getURL(read_url,
                               userpwd=login)
-
+        
         # split content into lines
         content <- strsplit(url_content, split="\n")[[1]]
-
+        
         # grab and split column names (1st element), removing 1st column name (time stamps)
         cnFTP <- content[1]
         cnFTP <- strsplit(x=cnFTP, split='\t')[[1]][-1]
@@ -117,22 +117,22 @@ updateRainDB <- function(rawdir,
         # remove whitespace from column names on downloaded data and rainDB
         cnFTP <- gsub(pattern=" ", replacement="", x=cnFTP)
         cnRainDB <- gsub(pattern=" ", replacement="", x=names(rainDB)[-1])
-
+        
         # rempove 1st element (headers)
         content <- content[-1]
-
+        
         # make data.frame for current day, including only rain gauges
         # contained in the version of rainDB on disk:
-
+        
         # determine which columns to use (column with KWB rain gauge is left out by this,
         # because it doesn't exist in BWB data)
         useCol <- match(cnRainDB, cnFTP)
         useCol <- useCol[!is.na(useCol)]
-
+        
         # since BWB data does not always have the same number of rows, loop length
         # must be determined by finding the row number of the last time stamp of
         # the current day
-
+        
         # make vector of downloaded dates
         downloadedDates <- rep(NA, times=length(content))
         for(j in 1:length(content)){
@@ -142,16 +142,16 @@ updateRainDB <- function(rawdir,
         downloadedDates <- as.Date(format(as.POSIXct(downloadedDates,
                                                      format="%d-%b-%y %H:%M:%S"),
                                           "%Y-%m-%d"), format="%Y-%m-%d")
-
+        
         # current date
         datei <- as.Date(availUser[i], format="%Y-%m-%d")
-
+        
         # current date. "-1" due to the day shift in the BWB data base
         datei <- as.Date(availUser[i], format="%Y-%m-%d")-1
-
+        
         # row number of last time stamp of current day
         rowsdatei <- which(downloadedDates==datei)
-
+        
         # if user wants to download last night's rain (availUser[i] == Sys.Date()),
         # then include all rows in content, otherwise include only rows until end of
         # current day
@@ -160,21 +160,21 @@ updateRainDB <- function(rawdir,
         } else {
           loopRows <- 1:length(content)
         }
-
+        
         # split content
         for(j in 1:length(loopRows)){
           contentsplt  <- strsplit(content[loopRows[j]], split="\t")[[1]]
           rowj         <- contentsplt[c(2, useCol)]
           rainDay[j, ] <- rowj
         }
-
+        
         # remove potential NAs due to missing rows in rainDay
         rainDay <- filter(rainDay, !is.na(dateTime))
-
+        
         # add new downloaded day
         downloadedRain <- rbind(downloadedRain, rainDay)
       }
-
+      
       # change decimal separator from ',' to '.'
       downloadedRain <- data.frame(lapply(X=downloadedRain,
                                           FUN=function(a){gsub(pattern=',', 
@@ -333,9 +333,9 @@ updateRainDB <- function(rawdir,
       
       # format time stamps
       tempKWB$dateTime <- as.character(format(as.POSIXct(as.character(tempKWB$dateTime),
-                                                     format="%d.%m.%Y %H:%M:%S",
-                                                     tz="Etc/GMT-1"),
-                                          "%Y-%m-%d %H:%M"))
+                                                         format="%d.%m.%Y %H:%M:%S",
+                                                         tz="Etc/GMT-1"),
+                                              "%Y-%m-%d %H:%M"))
       
       # add tempBBW to rainDB. ignore rows with false rain (were corrected manually in 
       # rainDB):
@@ -385,70 +385,6 @@ updateRainDB <- function(rawdir,
   }
 }
 
-# read BaSaR rainfall data base
-readRain <- function(rawdir, rainDBname, naStrings){
-  
-  # make path to file
-  rdbPath <- paste(rawdir, rainDBname, sep='')
-  
-  # check that 1st column is dateTime
-  dateTime1 <- scan(rdbPath, what="character", nmax=1, quiet=TRUE)
-  if(strsplit(dateTime1, split=';')[[1]][1] != 'dateTime')
-    stop('First column of rain data file must contain time stamps (%Y-%m-%d %H:%M)\nand have column name "dateTime"')
-  
-  rain <- read.table(rdbPath,
-                     sep=";",
-                     header=TRUE,
-                     encoding="UTF-8",
-                     colClasses="character",
-                     na.strings=naStrings)
-  
-  rain$dateTime <- as.POSIXct(rain$dateTime,
-                              format="%Y-%m-%d %H:%M",
-                              tz="Etc/GMT-1")
-  
-  rain[2:ncol(rain)] <- apply(rain[2:ncol(rain)], FUN=as.numeric, MARGIN=2)
-
-  return(rain)
-}
-
-# look at rainfall for each site, multiple gauges
-checkRain <- function(rainData, tBeg, tEnd, dt, dy, gauges, col, pch, lty){
-  
-  # filter data
-    tBeg <- as.POSIXct(tBeg, format="%Y-%m-%d %H:%M", tz="Etc/GMT-1")
-    tEnd <- as.POSIXct(tEnd, format="%Y-%m-%d %H:%M", tz="Etc/GMT-1")
-    rainSel <- rainData[rainData$dateTime >= tBeg & rainData$dateTime <= tEnd, 
-                        c('dateTime', gauges)]
-  
-    # make axes
-    tAx <- seq(tBeg, tEnd, by=dt)
-    rainMax <- max(rainSel[2:ncol(rainSel)], na.rm=TRUE)
-    rainAx <- seq(0, rainMax, by=dy)
-  
-    # plot
-    windows(height=4, width=7)
-    par(mar=c(3,4,1,3))
-    plot(rainSel$dateTime, rainSel[[2]], xlim=c(tBeg, tEnd), type="p", pch=NA,
-         axes=FALSE, xlab="", ylab="", main=,
-         ylim=c(0, rainMax))
-    
-    for(i in 1:length(gauges)){
-      lines(rainSel[, c('dateTime', gauges[i])],
-            col=col[i], pch=pch[i])
-    }
-    legend(x=par('usr')[2]-(par('usr')[2]-par('usr')[1])*0.3, 
-           y=par('usr')[4]-(par('usr')[4]-par('usr')[3])*0.1,
-           legend=gauges,
-           col=col,
-           lty=lty,
-           pch=pch)
-    axis(1, at=tAx, labels=format(tAx, format="%H:%M\n%d-%m"), padj=.45, cex.axis=1.2)
-    axis(2, las=2, at=rainAx, labels=round(rainAx, digits=1))
-    mtext('Rainfall [mm/5min.]', side=2, line=2.5)
-    box()
-}
-
 # download temperature from DWD
 updateWeatherDB <- function(rawdir, dbName, 
                             dwdStationID, dwdCols,
@@ -468,8 +404,8 @@ updateWeatherDB <- function(rawdir, dbName,
   
   # format columns
   db[2:ncol(db)] <- apply(X=db[2:ncol(db)], 
-                  MARGIN=2,
-                  FUN=as.numeric)
+                          MARGIN=2,
+                          FUN=as.numeric)
   
   # download data from DWD ftp Server
   if(grepl(pattern='temp', x=dbName)){
@@ -552,55 +488,69 @@ updateWeatherDB <- function(rawdir, dbName,
   }
 }
 
-# read wind data base
-readWind <- function()
-{
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/RAW/_KlimaDWD/Wind")
+# read weather data base
+readWeather <- function(rawdir, dbName, naStrings){
   
+  # make path to weather data base (db)
+  dbPath <- paste(rawdir, dbName, sep='')
   
-  windData <- tbl_df(read.table("windData.txt", header=TRUE,
-                                dec=",", sep =";",
-                                colClasses=c("character", rep("numeric", times=6))))
+  # check that 1st column is dateTime
+  dateTime1 <- scan(dbPath, what="character", nmax=1, quiet=TRUE)
+  if(strsplit(dateTime1, split=';')[[1]][1] != 'dateTime')
+    stop('First column of weather data base file must contain time stamps (%Y-%m-%d %H:%M)\nand have column name "dateTime"')
   
-  windData$dateTime <- as.POSIXct(windData$dateTime,
-                                  format="%Y-%m-%d %H:%M",
-                                  tz="Etc/GMT-1")
+  db <- read.table(dbPath,
+                   sep=";",
+                   header=TRUE,
+                   encoding="UTF-8",
+                   colClasses="character",
+                   na.strings=naStrings)
   
-  return(windData)
+  # format dateTime
+  db$dateTime <- as.POSIXct(db$dateTime,
+                            format="%Y-%m-%d %H:%M",
+                            tz="Etc/GMT-1")
+  
+  db[2:ncol(db)] <- apply(db[2:ncol(db)], FUN=as.numeric, MARGIN=2)
+  
+  return(db)
 }
 
-# read temperature data base
-readTemp <- function()
-{
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/RAW/_KlimaDWD/Temperature")
+# look at rainfall, multiple gauges
+checkRain <- function(rainData, tBeg, tEnd, dt, dy, gauges, col, pch, lty){
   
-  tempdData <- tbl_df(read.table("tempData.txt", header=TRUE,
-                                 dec=",", sep =";",
-                                 colClasses=c("character", rep("numeric", times=6))))
+  # filter data
+  tBeg <- as.POSIXct(tBeg, format="%Y-%m-%d %H:%M", tz="Etc/GMT-1")
+  tEnd <- as.POSIXct(tEnd, format="%Y-%m-%d %H:%M", tz="Etc/GMT-1")
+  rainSel <- rainData[rainData$dateTime >= tBeg & rainData$dateTime <= tEnd, 
+                      c('dateTime', gauges)]
   
-  tempdData$dateTime <- as.POSIXct(tempdData$dateTime,
-                                   format="%Y-%m-%d %H:%M",
-                                   tz="Etc/GMT-1")
+  # make axes
+  tAx <- seq(tBeg, tEnd, by=dt)
+  rainMax <- max(rainSel[2:ncol(rainSel)], na.rm=TRUE)
+  rainAx <- seq(0, rainMax, by=dy)
   
-  return(tbl_df(tempdData))
-}
-
-# read solar data base
-readSolar <- function()
-{
-  setwd("//Medusa/Projekte$/AUFTRAEGE/_Auftraege_laufend/UFOPLAN-BaSaR/Data-Work packages/AP3 - Monitoring/_Daten/RAW/_KlimaDWD/solar")
+  # plot
+  windows(height=4, width=7)
+  par(mar=c(3,4,1,3))
+  plot(rainSel$dateTime, rainSel[[2]], xlim=c(tBeg, tEnd), type="p", pch=NA,
+       axes=FALSE, xlab="", ylab="", main=,
+       ylim=c(0, rainMax))
   
-  solarData <- tbl_df(read.table("solarData.txt", header=TRUE,
-                                 dec=".", sep =";",
-                                 colClasses = c("character",
-                                                rep("numeric", times=10)),
-                                 na.strings = "-999"))
-  
-  solarData$dateTime <- as.POSIXct(solarData$dateTime,
-                                   format="%Y-%m-%d %H:%M",
-                                   tz="Etc/GMT-1")
-  
-  return(solarData)
+  for(i in 1:length(gauges)){
+    lines(rainSel[, c('dateTime', gauges[i])],
+          col=col[i], pch=pch[i])
+  }
+  legend(x=par('usr')[2]-(par('usr')[2]-par('usr')[1])*0.3, 
+         y=par('usr')[4]-(par('usr')[4]-par('usr')[3])*0.1,
+         legend=gauges,
+         col=col,
+         lty=lty,
+         pch=pch)
+  axis(1, at=tAx, labels=format(tAx, format="%H:%M\n%d-%m"), padj=.45, cex.axis=1.2)
+  axis(2, las=2, at=rainAx, labels=round(rainAx, digits=1))
+  mtext('Rainfall [mm/5min.]', side=2, line=2.5)
+  box()
 }
 
 # plot and compute statistics for weather data, filtering out time intervals without rain
@@ -608,250 +558,162 @@ readSolar <- function()
 # individual parts
 checkWeather <- function(rawdir, 
                          tBeg, tEnd, dt,
-                         rainDBname, windDBname, tempDBname,
-                         rainScale)
-{
+                         rainData, windData, tempData,
+                         rainScale,
+                         rainGauge){
   # format start and end times
   tEnd <- as.POSIXct(tEnd, format = "%Y-%m-%d %H:%M", tz="Etc/GMT-1")
   tBeg <- as.POSIXct(tBeg, format = "%Y-%m-%d %H:%M", tz="Etc/GMT-1")
-
-  # make file paths
-  rainDBpath <- paste(rawdir, rainDBname, sep='')
-  windDBpath <- paste(rawdir, windDBname, sep='') 
-  tempDBpath <- paste(rawdir, tempDBname, sep='')
   
-  
-  # format wind and temperature dateTime
-    windDB$dateTime <- as.POSIXct(windDB$dateTime,
-                                  tz="Etc/GMT-1",
-                                  format="%Y-%m-%d %H:%M:%S")
-    tempDB$dateTime <- as.POSIXct(tempDB$dateTime,
-                                  tz="Etc/GMT-1",
-                                  format = "%Y-%m-%d %H:%M:%S")
-  
-
   # grab only desired event
-    rainEvent    <- filter(rainDB, dateTime >= tBeg & dateTime <= tEnd)
-    windEvent    <- filter(windDB, dateTime >= tBeg & dateTime <= tEnd)
-    tempEvent    <- filter(tempDB, dateTime >= tBeg & dateTime <= tEnd)
-    rainBBWevent <- dplyr::select(rainEvent, dateTime, rainGaugeBBW)
-    rainBBRevent <- dplyr::select(rainEvent, dateTime, rainGaugeBBR)
-    windBBRevent <- dplyr::select(windEvent, dateTime, speed=speed_BBR, direction=direction_BBR)
-    windBBWevent <- dplyr::select(windEvent, dateTime, speed=speed_BBW, direction=direction_BBW)
-    tempBBRevent <- dplyr::select(tempEvent, dateTime, tBBR=temperature_BBR)
-    tempBBWevent <- dplyr::select(tempEvent, dateTime, tBBW=temperature_BBW)
+  rainEvent <- rainData[(rainData$dateTime >= tBeg) & (rainData$dateTime <= tEnd),
+                        c('dateTime', rainGauge)]
+  windEvent <-windData[(windData$dateTime >= tBeg) & (windData$dateTime <= tEnd), ]
+  tempEvent <- tempData[tempData$dateTime >= tBeg & tempData$dateTime <= tEnd, ]
   
-
+  
   # bring all data to same time axis though linear interpolation
-  {
-    intWspeedBBRevent <- as.data.frame(approx(x=windBBRevent$dateTime,
-                                              y=windBBRevent$speed,
-                                              xout=rainBBRevent$dateTime))
-    intWspeedBBWevent <- as.data.frame(approx(x=windBBWevent$dateTime,
-                                              y=windBBWevent$speed,
-                                              xout=rainBBWevent$dateTime))
-    intWdirBBRevent <- as.data.frame(approx(x=windBBRevent$dateTime,
-                                            y=windBBRevent$direction,
-                                            xout=rainBBRevent$dateTime))
-    intWdirBBWevent <- as.data.frame(approx(x=windBBWevent$dateTime,
-                                            y=windBBWevent$direction,
-                                            xout=rainBBWevent$dateTime))
-    intTempBBRevent <- as.data.frame(approx(x=tempBBRevent$dateTime,
-                                            y=tempBBRevent$tBBR,
-                                            xout=rainBBRevent$dateTime))
-    intTempBBWevent <- as.data.frame(approx(x=tempBBWevent$dateTime,
-                                            y=tempBBWevent$tBBW,
-                                            xout=rainBBWevent$dateTime))
-  }
-
+  intWspeedEvent <- as.data.frame(approx(x=windEvent$dateTime,
+                                         y=windEvent$wSpeed,
+                                         xout=rainEvent$dateTime))
+  intWdirEvent <- as.data.frame(approx(x=windEvent$dateTime,
+                                       y=windEvent$wDirection,
+                                       xout=rainEvent$dateTime))
+  intTempEvent <- as.data.frame(approx(x=tempEvent$dateTime,
+                                       y=tempEvent$Temperature,
+                                       xout=rainEvent$dateTime))
+  
   # grab temperature and wind from rows where rain>0
-  {
-    indexBBR <- which(pull(rainBBRevent, rainGaugeBBR) > 0)
-    wsBBR    <- intWspeedBBRevent[indexBBR, ]
-    wdBBR    <- intWdirBBRevent[indexBBR, ]
-    tBBR     <- intTempBBRevent[indexBBR, ]
-
-    indexBBW <- which(pull(rainBBWevent, rainGaugeBBW) > 0)
-    wsBBW    <- intWspeedBBWevent[indexBBW, ]
-    wdBBW    <- intWdirBBWevent[indexBBW, ]
-    tBBW     <- intTempBBWevent[indexBBW, ]
-  }
-
+  index <- which(rainEvent[, rainGauge] > 0)
+  ws <- intWspeedEvent[index, ]
+  wd <- intWdirEvent[index, ]
+  tt <- intTempEvent[index, ]
+  
+  
   # make statistics of these data
-  {
-    cat("\nBBR:\n")
-    xx <- sum(pull(rainBBRevent, rainGaugeBBR), na.rm=TRUE)
-    cat("rain height =", round(xx, digits=1), "mm\n")
-
-    xx <- mean(wsBBR$y, na.rm=TRUE)
-    sdxx <- sd(wsBBR$y, na.rm=TRUE)
-    cat("wind speed =", round(xx, digits=1), "+/-", round(sdxx, digits=2), "m/s\n")
-
-    xx <- mean(wdBBR$y, na.rm=TRUE)
-    sdxx <- sd(wdBBR$y, na.rm=TRUE)
-    cat("wind dir. =", round(xx, digits=1), "+/-", round(sdxx, digits=2), "deg\n")
-
-
-    xx <- mean(tBBR$y, na.rm=TRUE)
-    sdxx <- sd(tBBR$y, na.rm=TRUE)
-    cat("air temp. =", round(xx, digits=1), "+/-", round(sdxx, digits=2), "degC\n")
-
-    cat("\nBBW:\n")
-    xx <- sum(pull(rainBBWevent, rainGaugeBBW), na.rm=TRUE)
-    cat("rain height =", round(xx, digits=1), "mm\n")
-
-    xx <- mean(wsBBW$y, na.rm=TRUE)
-    sdxx <- sd(wsBBW$y, na.rm=TRUE)
-    cat("wind speed =", round(xx, digits=1), "+/-", round(sdxx, digits=2), "m/s\n")
-
-    xx <- mean(wdBBW$y, na.rm=TRUE)
-    sdxx <- sd(wdBBW$y, na.rm=TRUE)
-    cat("wind dir. =", round(xx, digits=1), "+/-", round(sdxx, digits=2), "deg\n")
-
-    xx <- mean(tBBW$y, na.rm=TRUE)
-    sdxx <- sd(tBBW$y, na.rm=TRUE)
-    cat("air temp. =", round(xx, digits=1), "+/-", round(sdxx, digits=2), "degC\n")
-  }
-
-  # make plots
-  {
-    # sort data to avoid inexplicable line connecting last and first point...
-    windBBRevent <- windBBRevent[order(windBBRevent$dateTime), ]
-    windBBWevent <- windBBWevent[order(windBBWevent$dateTime), ]
-
-    scaleSpeed <- 360/max(c(windBBRevent$speed, windBBWevent$speed), na.rm=TRUE)
-    tAx        <- seq(tBeg, tEnd, by=dt)
-
-    par(mar=c(3,3.5,1,5), mfcol=c(2,1))
-
-    # BBR
-    plot(windBBRevent$dateTime, windBBRevent$direction, xlim=c(tBeg-0.01*(tEnd-tBeg),
-                                                               tEnd+0.05*(tEnd-tBeg)),
-         type="p", pch=20, axes=FALSE, xlab="", ylab="",
-         main=paste("BBR, DWD Tegel,", rainGaugeBBR),
-         ylim=c(0, 360)); box()
-    addRain(raindat=rainBBRevent, ymax=360, scale=rainScale, color="grey",
-            rainGauge=rainGaugeBBR)
-    lines(windBBRevent$dateTime, windBBRevent$direction, pch=20, type="p")
-    lines(windBBRevent$dateTime, windBBRevent$speed*scaleSpeed, pch=20, type="p", col="red")
-    axis(1, at=tAx, labels=format(tAx, format="%H:%M\n%d-%m"), padj=.25, cex.axis=0.8)
-    axis(2, las=2, at=seq(0, 360, by=90), cex.axis=0.8)
-    axis(4, las=3.5, at=seq(0, 360, length=6), cex.axis=0.8, col="red", col.axis="red",
-         lab=round(seq(0, 360, length=6)/scaleSpeed, digits=0), mgp = c(0,2.5,2.8))
-    mtext("Wind Dir. [grad]", side=2, line=2.5)
-    mtext("W_Speed [m/s]", side=4, line=1, col="red", padj = .25, adj = 0)
-    abline(h=c(45, 135, 225, 315), lty=2, col="grey")
-    text(c("N", "E", "S", "W", "N"), x=tEnd-0.05*(tBeg-tEnd), y=c(20, 90, 180, 270, 350))
-    eq <-
-      bquote(paste(h[N]   == .(sum(pull(rainBBRevent, rainGaugeBBR), na.rm=TRUE)), " mm, ",
-                   wDir   == .(round(mean(wdBBR$y, na.rm=TRUE), digits=0)), "(",
-                   .(round(sd(wdBBR$y, na.rm=TRUE), digits=0)), ") deg, ",
-                   wSpeed == .(round(mean(wsBBR$y, na.rm=TRUE), digits=1)), "(",
-                   .(round(sd(wsBBR$y, na.rm=TRUE), digits=1)),") m/s"))
-    #text(x=tEnd, y=10, eq, adj=1)
-
-    # BBW
-    plot(windBBWevent$dateTime, windBBWevent$direction, xlim=c(tBeg-0.01*(tEnd-tBeg),
-                                                               tEnd+0.05*(tEnd-tBeg)),
-         type="p", pch=20, axes=FALSE, xlab="", ylab="",
-         main=paste("BBW, DWD Sch?nefeld,", rainGaugeBBW),
-         ylim=c(0, 360)); box()
-    addRain(raindat=rainBBWevent, ymax=360, scale=rainScale, color="grey",
-            rainGauge=rainGaugeBBW)
-    lines(windBBWevent$dateTime, windBBWevent$direction, pch=20, type="p")
-    lines(windBBWevent$dateTime, windBBWevent$speed*scaleSpeed, type="p", pch=20,
-          col="red")
-    axis(1, at=tAx, labels=format(tAx, format="%H:%M\n%d-%m"), padj=.25, cex.axis=0.8)
-    axis(2, las=2, at=seq(0, 360, by=90), cex.axis=0.8)
-    axis(4, las=3.5, at=seq(0, 360, length=6), cex.axis=0.8, col="red", col.axis="red",
-         lab=round(seq(0, 360, length=6)/scaleSpeed, digits=0), mgp = c(0,2.5,2.8))
-    mtext("Wind Dir. [grad]", side=2, line=2.5)
-    mtext("W_Speed [m/s]", side=4, line=1, col="red", padj = .25, adj = 0)
-    abline(h=c(45, 135, 225, 315), lty=2, col="grey")
-    text(c("N", "E", "S", "W", "N"), x=tEnd-0.05*(tBeg-tEnd), y=c(20, 90, 180, 270, 350))
-    eq <-
-      bquote(paste(h[N]   == .(sum(pull(rainBBWevent, rainGaugeBBW), na.rm=TRUE)), " mm, ",
-                   wDir   == .(round(mean(wdBBW$y, na.rm=TRUE), digits=0)), "(",
-                   .(round(sd(wdBBW$y, na.rm=TRUE), digits=0)), ") deg, ",
-                   wSpeed == .(round(mean(wsBBW$y, na.rm=TRUE), digits=1)), "(",
-                   .(round(sd(wsBBW$y, na.rm=TRUE), digits=1)),") m/s"))
-    #text(x=tEnd, y=10, eq, adj=1)
-  }
+  xx <- sum(rainEvent[, rainGauge], na.rm=TRUE)
+  cat("rain depth =", round(xx, digits=1), "mm\n")
+  
+  xx <- mean(ws$y, na.rm=TRUE)
+  sdxx <- sd(ws$y, na.rm=TRUE)
+  cat("wind speed =", round(xx, digits=1), "+/-", round(sdxx, digits=2), "m/s\n")
+  
+  xx <- mean(wd$y, na.rm=TRUE)
+  sdxx <- sd(wd$y, na.rm=TRUE)
+  cat("wind dir. =", round(xx, digits=1), "+/-", round(sdxx, digits=2), "deg\n")
+  
+  
+  xx <- mean(tt$y, na.rm=TRUE)
+  sdxx <- sd(tt$y, na.rm=TRUE)
+  cat("air temp. =", round(xx, digits=1), "+/-", round(sdxx, digits=2), "degC\n")
+  
+  
+  
+  # sort data to avoid inexplicable line connecting last and first point in plot
+  windEvent <- windEvent[order(windEvent$dateTime), ] 
+  
+  # scale wSpeed
+  scaleSpeed <- 360/max(c(windEvent$wSpeed, windEvent$wSpeed), na.rm=TRUE)
+  tAx <- seq(tBeg, tEnd, by=dt)
+  
+  windows(height=4, width=8)
+  par(mar=c(3,3.5,1,5))
+  plot(windEvent$dateTime, windEvent$wDirection, xlim=c(tBeg-0.01*(tEnd-tBeg),
+                                                        tEnd+0.05*(tEnd-tBeg)),
+       type="p", pch=20, axes=FALSE, xlab="", ylab="",
+       main='',
+       ylim=c(0, 360)); box()
+  addRain(raindat=rainEvent, ymax=360, scale=rainScale, color="grey",
+          rainGauge=rainGauge)
+  lines(windEvent$dateTime, windEvent$wDirection, pch=20, type="p")
+  lines(windEvent$dateTime, windEvent$wSpeed*scaleSpeed, pch=20, type="p", col="red")
+  axis(1, at=tAx, labels=format(tAx, format="%H:%M\n%d-%m"), padj=.25, cex.axis=0.8)
+  axis(2, las=2, at=seq(0, 360, by=90), cex.axis=0.8)
+  axis(4, las=3.5, at=seq(0, 360, length=6), cex.axis=0.8, col="red", col.axis="red",
+       lab=round(seq(0, 360, length=6)/scaleSpeed, digits=0), mgp = c(0,2.5,2.8))
+  mtext("wDir [grad]", side=2, line=2.5)
+  mtext("wSpeed [m/s]", side=4, line=1, col="red", padj = .25, adj = 0)
+  abline(h=c(45, 135, 225, 315), lty=2, col="grey")
+  text(c("N", "E", "S", "W", "N"), x=tEnd-0.05*(tBeg-tEnd), y=c(20, 90, 180, 270, 350))
+  eq <-
+    bquote(paste(h[N] == .(sum(rainEvent[, rainGauge], na.rm=TRUE)), " mm, ",
+                 wDir == .(round(mean(wd$y, na.rm=TRUE), digits=0)), "(",
+                 .(round(sd(wd$y, na.rm=TRUE), digits=0)), ") deg, ",
+                 wSpeed == .(round(mean(ws$y, na.rm=TRUE), digits=1)), "(",
+                 .(round(sd(ws$y, na.rm=TRUE), digits=1)),") m/s"))
+  text(x=tEnd, y=10, eq, adj=1)
 }
 
-
-
 # add rain to existing plot as upside-down bars
-addRain <- function(raindat, ymax, scale, color, rainGauge)
-{
+addRain <- function(raindat, ymax, scale, color, rainGauge){
   for(i in 1:(nrow(raindat)-1))
   {
     x0 <- raindat[[1]][i]
     x1 <- raindat[[1]][i+1]
     y1 <- pull(raindat, rainGauge)[i]
-
+    
     polygon(x=c(x0, x0, x1, x1),
             y=c(ymax, -y1*scale + ymax, -y1*scale + ymax, ymax),
             col=color, border=color)
   }
-
+  
   iNmax  <- max(pull(raindat, rainGauge), na.rm=TRUE)
-
+  
   if(iNmax < 0.5)
   {
     iNby <- 0.1
-
+    
   } else {
-
+    
     if(iNmax < 1)
     {
       iNby <- 0.2
-
+      
     } else {
-
+      
       if(iNmax < 2)
       {
-
+        
         iNby <- 0.5
-
+        
       } else {
-
+        
         if(iNmax < 5)
         {
           iNby <- 1
-
+          
         } else {
-
+          
           iNby <- 2
         }
       }
     }
   }
-
+  
   rAx    <- -seq(0, iNmax, by=iNby)*scale + ymax
   rAxLab <- round(seq(0, iNmax, by=iNby), digits=1)
-
+  
   axis(4, las=2, at=rAx, labels=rAxLab, hadj=0.3)
   mtext(expression(paste(i[N], " [mm/5min.]")), side=4, line=1.8, at=ymax, adj=1, cex=0.8)
 }
 
 # compute angle of attack of wind to facade
 angleAttack <- function(facadeOrientation, windDir){
-
+  
   dalpha <- abs(windDir - facadeOrientation)
-
+  
   # two cases = dalpha < 180 of dalpha > 180
   if(dalpha < 180){
-
+    
     aa <- ifelse(dalpha>=90, 0, abs(90-dalpha))
-
+    
   } else {
-
+    
     # for dalpha > 180, subtract 360 to bring alpha to first quadrant of cartesian plane
     dalpha2 <- abs(dalpha - 360)
     aa <- ifelse(dalpha2 >= 90, 0, abs(90-dalpha2))
   }
-
+  
   return(aa)
 }
 
