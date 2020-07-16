@@ -1,4 +1,4 @@
-# read roof runoff.
+# read roof runoff
 readTipbucket <- function(path, dateFormat, timeZone){
   
   require(dplyr)
@@ -17,14 +17,24 @@ readTipbucket <- function(path, dateFormat, timeZone){
                     col.names=c("id", "dateTime", "Q"),
                     stringsAsFactors=FALSE)
   
+  # element names = file names
   names(avData) <- avFiles
   
   # make table with start and end dateTimes of each available data file
-  timeWindows <- dplyr::tbl_df(as.data.frame(matrix(nrow=0, ncol=3)))
+  timeWindows <- as.data.frame(matrix(nrow=0, ncol=3))
   names(timeWindows) <- c("file", "start", "end")
   
   for(i in 1:length(avData)){
     
+    # format all time columns as posixct
+    avData[[i]]$dateTime <- as.POSIXct(avData[[i]]$dateTime,
+                                       format='%d.%m.%Y %H:%M',
+                                       tz='Etc/GMT-1')
+    
+    # strip whitespace from discharge values
+    avData[[i]]$Q <- sub(pattern='\\s*', replacement='', x=avData[[i]]$Q)
+
+    # grab file name, start and end of each file
     rowi <- data.frame(file=names(avData)[i],
                        start=min(avData[[i]]$dateTime),
                        end=max(avData[[i]]$dateTime))
@@ -32,7 +42,6 @@ readTipbucket <- function(path, dateFormat, timeZone){
     timeWindows <- rbind(timeWindows, rowi)
   }
   
-  timeWindows$file  <- as.character(timeWindows$file)
   timeWindows$start <- as.POSIXct(timeWindows$start, tz=timeZone,
                                   format=dateFormat)
   timeWindows$end <- as.POSIXct(timeWindows$end, tz=timeZone,
@@ -70,10 +79,8 @@ readTipbucket <- function(path, dateFormat, timeZone){
   baseData <- character(0)
   
   for(i in startDates){
-    
     index        <- which(timeWindows$startDay == i)
     timeWindowsi <- timeWindows[index, ]
-    
     baseData <- c(baseData,
                   timeWindowsi$file[timeWindowsi$durations ==
                                       max(timeWindowsi$durations)])
@@ -81,14 +88,14 @@ readTipbucket <- function(path, dateFormat, timeZone){
   
   # make single table using baseData
   runoffTimeSeries <-  do.call("rbind", avData[baseData])
-  runoffTimeSeries <- dplyr::tbl_df(runoffTimeSeries[, 2:3])
+  runoffTimeSeries <- runoffTimeSeries[, 2:3]
   
   # handle data points > measurement limit:
   
   # find data points with non-digit characters
-  ndc <- which(!grepl(pattern='^[0123456789]+$', 
-                      x=runoffTimeSeries$Q))
-  if(length(ndc)>0){
+  ndc <- !grepl(pattern='^[0123456789]+$', x=runoffTimeSeries$Q)
+  
+  if(sum(ndc)>0){
     runoffTimeSeries$Q[ndc] <- '-9999'
   }
   runoffTimeSeries$Q <- as.integer(runoffTimeSeries$Q)
@@ -98,6 +105,9 @@ readTipbucket <- function(path, dateFormat, timeZone){
   runoffTimeSeries$dateTime <- as.POSIXct(runoffTimeSeries$dateTime,
                                           format=dateFormat,
                                           tz=timeZone)
+  
+  # remove row names
+  rownames(runoffTimeSeries) <- NULL
   
   # return time series
   return(runoffTimeSeries)
@@ -137,12 +147,12 @@ plotEvent <- function(tBeg, tEnd, dt,
   inflowQsel <- inflowQ[(inflowQ$dateTime >= tBeg) & (inflowQ$dateTime <= tEnd), ]
   outflowQsel <- outflowQ[(outflowQ$dateTime >= tBeg) & (outflowQ$dateTime <= tEnd), ]
   rainSel <- rainData[(rainData$dateTime >= tBeg) & (rainData$dateTime <= tEnd), ]
-                      
+  
   # compute runoff volume
   zuV <- computeVol(dischargeData=Qzu, 
-             Qcolumn='Q', 
-             tBeg=tBeg,
-             tEnd=tEnd)
+                    Qcolumn='Q', 
+                    tBeg=tBeg,
+                    tEnd=tEnd)
   abV <- computeVol(dischargeData=Qab, 
                     Qcolumn='Q', 
                     tBeg=tBeg,
@@ -158,14 +168,18 @@ plotEvent <- function(tBeg, tEnd, dt,
        axes=FALSE, xlab="", ylab="", ylim=c(0, 1.1*Qmax))
   lines(outflowQsel$dateTime, outflowQsel$Q, col='red', type='o', pch=20)
   addRain(raindat=rainSel, ymax=1.1*Qmax, scale=rainScale, color="grey", rainGauge)
+  legend(x=tEnd-3600*12,
+         y=Qmax,
+         legend = c('Zu', 'Ab'), lty=1, col=c('black', 'red'),
+         cex=0.8)
   axis(1, at=tAx, labels=format(tAx, format="%H:%M\n%d-%m"), padj=.25, cex.axis=0.8)
   axis(2, las=2)
-  mtext(expression(paste(Q[roof], " [l/h]")), side=2, line=3, cex=1.5)
+  mtext("Q [l/h]", side=2, line=3.5, cex=1.25)
   eq <- bquote(paste(h[N] == .(sum(rainSel[, rainGauge]), na.rm=TRUE), " mm"))
-  text(x=tEnd-3600, y=0.8*Qmax, eq, adj=1)
-  eq <- bquote(paste(V[Zu] == .(zuV), " l"))
   text(x=tEnd-3600, y=0.7*Qmax, eq, adj=1)
-  eq <- bquote(paste(V[Ab] == .(abV), " l"))
+  eq <- bquote(paste(V[Zu] == .(zuV), " l"))
   text(x=tEnd-3600, y=0.6*Qmax, eq, adj=1)
+  eq <- bquote(paste(V[Ab] == .(abV), " l"))
+  text(x=tEnd-3600, y=0.5*Qmax, eq, adj=1)
   box()
 }
