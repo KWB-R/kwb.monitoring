@@ -556,7 +556,7 @@ checkRain <- function(rainData, tBeg, tEnd, dt, dy, gauges, col, pch, lty){
 # plot and compute statistics for weather data, filtering out time intervals without rain
 # within the event. tBeg and tEnd are the start and end time of the full event, not the
 # individual parts
-checkWeather <- function(tBeg, tEnd, dt, # deleted rawdir
+checkWeather <- function(tBeg, tEnd, dt,
                          rainData, windData, tempData,
                          rainScale,
                          rainGauge){

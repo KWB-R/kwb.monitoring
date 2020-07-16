@@ -42,10 +42,7 @@ readTipbucket <- function(path, dateFormat, timeZone){
     timeWindows <- rbind(timeWindows, rowi)
   }
   
-  timeWindows$start <- as.POSIXct(timeWindows$start, tz=timeZone,
-                                  format=dateFormat)
-  timeWindows$end <- as.POSIXct(timeWindows$end, tz=timeZone,
-                                format=dateFormat)
+  timeWindows$file <- as.character(timeWindows$file)
   
   # During the monitoring, it was necessary to adjust the logger's clock several times (the
   # clock drifted 1-2 min. per month more or less). Adjustment was made by making the logger
@@ -70,7 +67,6 @@ readTipbucket <- function(path, dateFormat, timeZone){
   
   timeWindows$durations <- (as.numeric(timeWindows$end) - 
                               as.numeric(timeWindows$startDay))
-  
   
   # identify which files are needed for covering full time period by grabbing the file
   # with the maximum duration for each start date
