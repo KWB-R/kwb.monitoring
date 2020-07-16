@@ -1,5 +1,5 @@
 # read roof runoff.
-readTipbucket <- function(path, dateFormat, timeZone){
+readTipbucket <- function(path, dateFormat, timeZone){ # check warning in max, line 74
   
   require(dplyr)
   
