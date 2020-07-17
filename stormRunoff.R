@@ -1,11 +1,11 @@
 # read roof runoff
-readTipbucket <- function(path, dateFormat, timeZone){
+readTipbucket <- function(rawdir, dateFormat, timeZone){
   
   library(dplyr)
   
   # read available files
-  setwd(path)
-  avFiles <- list.files(path, pattern=".csv$")
+  setwd(rawdir)
+  avFiles <- list.files(pattern=".csv$")
   avData  <- lapply(avFiles,
                     read.table,
                     header=FALSE,
@@ -28,8 +28,8 @@ readTipbucket <- function(path, dateFormat, timeZone){
     
     # format all time columns as posixct
     avData[[i]]$dateTime <- as.POSIXct(avData[[i]]$dateTime,
-                                       format='%d.%m.%Y %H:%M',
-                                       tz='Etc/GMT-1')
+                                       format=dateFormat, 
+                                       tz=timeZone)
     
     # strip whitespace from discharge values
     avData[[i]]$Q <- sub(pattern='\\s*', replacement='', x=avData[[i]]$Q)
