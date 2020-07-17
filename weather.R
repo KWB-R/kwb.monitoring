@@ -11,8 +11,7 @@ updateRainDB <- function(rawdir,
                          overwriteOldDB){
   # the function downloads a user-defined time period (days) and adds this data to the corresponding
   # rows of rainDB.
-  # data sources are KWB ftp server for BWB gauges (Owd, KöpI, Joh, BlnX, BlnIV, BlnXI) and
-  # Nivus device2web (d2w) for KWB gauge in Bruno-B?rgel-Weg
+  # data sources are KWB ftp server for BWB gauges and Nivus device2web 
   # time staps in rainDB are always in winter time -> no winter/summer time change
   # times with false or dubious data are NOT automatically adjusted or ignored by the function, it
   # simply downloads whatever is in the source data (ftp, d2w). the user must identify false values
