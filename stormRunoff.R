@@ -1,7 +1,7 @@
 # read roof runoff.
 readTipbucket <- function(path, dateFormat, timeZone)
 {
-  require(dplyr)
+  library(dplyr)
   
   # read available files
   setwd(path)

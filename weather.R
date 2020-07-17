@@ -10,9 +10,9 @@ updateRainDB <- function(rawdir,
                          overwriteOldrainDB,
                          skip)
 {
-  require(dplyr)
-  require(RCurl)
-  require(curl)
+  library(dplyr)
+  library(RCurl)
+  library(curl)
 
   # the function downloads a user-defined time period (days) and adds this data to the corresponding
   # rows of rainDB.
