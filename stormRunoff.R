@@ -122,7 +122,7 @@ computeVol <- function(dischargeData, Qcolumn, tBeg, tEnd){
   
   AA <- dplyr::pull(Qsel, Qcolumn)[2:(nrow(Qsel))]
   aa <- dplyr::pull(Qsel, Qcolumn)[1:(nrow(Qsel)-1)]
-  hh <- (as.numeric(Qsel$dateTime[2:(nrow(Qsel))]) - 
+  hh <- (as.numeric(Qsel$dateTime[2:(nrow(Qsel))]) -
            as.numeric(Qsel$dateTime[1:(nrow(Qsel)-1)]))/3600
   Vtot <- sum((AA + aa)/2*hh, na.rm=TRUE)
   
@@ -145,11 +145,11 @@ plotEvent <- function(tBeg, tEnd, dt,
   rainSel <- rainData[(rainData$dateTime >= tBeg) & (rainData$dateTime <= tEnd), ]
   
   # compute runoff volume
-  zuV <- computeVol(dischargeData=Qzu, 
+  zuV <- computeVol(dischargeData=inflowQsel, 
                     Qcolumn='Q', 
                     tBeg=tBeg,
                     tEnd=tEnd)
-  abV <- computeVol(dischargeData=Qab, 
+  abV <- computeVol(dischargeData=outflowQsel, 
                     Qcolumn='Q', 
                     tBeg=tBeg,
                     tEnd=tEnd)
@@ -164,7 +164,7 @@ plotEvent <- function(tBeg, tEnd, dt,
        axes=FALSE, xlab="", ylab="", ylim=c(0, 1.1*Qmax))
   lines(outflowQsel$dateTime, outflowQsel$Q, col='red', type='o', pch=20)
   addRain(raindat=rainSel, ymax=1.1*Qmax, scale=rainScale, color="grey", rainGauge)
-  legend(x=tEnd-3600*12,
+  legend(x=tEnd-(tEnd - tBeg)*0.15,
          y=Qmax,
          legend = c('Zu', 'Ab'), lty=1, col=c('black', 'red'),
          cex=0.8)
@@ -172,10 +172,10 @@ plotEvent <- function(tBeg, tEnd, dt,
   axis(2, las=2)
   mtext("Q [l/h]", side=2, line=3.5, cex=1.25)
   eq <- bquote(paste(h[N] == .(sum(rainSel[, rainGauge]), na.rm=TRUE), " mm"))
-  text(x=tEnd-3600, y=0.7*Qmax, eq, adj=1)
+  text(x=tEnd-(tEnd - tBeg)*0.15, y=0.7*Qmax, eq, adj=1)
   eq <- bquote(paste(V[Zu] == .(zuV), " l"))
-  text(x=tEnd-3600, y=0.6*Qmax, eq, adj=1)
+  text(x=tEnd-(tEnd - tBeg)*0.15, y=0.6*Qmax, eq, adj=1)
   eq <- bquote(paste(V[Ab] == .(abV), " l"))
-  text(x=tEnd-3600, y=0.5*Qmax, eq, adj=1)
+  text(x=tEnd-(tEnd - tBeg)*0.15, y=0.5*Qmax, eq, adj=1)
   box()
 }
