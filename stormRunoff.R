@@ -156,7 +156,7 @@ plotEvent <- function(tBeg, tEnd, dt,
   
   # make plot
   tAx  <- seq(tBeg, tEnd, by=dt)
-  Qmax <- max(inflowQsel$Q, na.rm=TRUE)
+  Qmax <- max(c(inflowQsel$Q, outflowQsel$Q), na.rm=TRUE)
   
   windows(height=5, width=8)
   par(mar=c(3, 5, 2, 5))
@@ -179,3 +179,4 @@ plotEvent <- function(tBeg, tEnd, dt,
   text(x=tEnd-(tEnd - tBeg)*0.15, y=0.5*Qmax, eq, adj=1)
   box()
 }
+
