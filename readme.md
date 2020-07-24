@@ -8,6 +8,7 @@ source('.../stormRunoff.R')
 source('.../weather.R')
 ```
 
+# Read runoff data from tipping bucket runoff loggers
 Data from tipping bucket runoff loggers can be read using function `readTipbucket`:
 ```R
 # read data from runoff logger
@@ -20,6 +21,7 @@ Parameters:
 
 If there are different data files covering different overlapping or non-overlapping time periods (e.g., file 1: 1-Jan-2020 to 15-Jun-2020, file 2: 1-Jun-2020 to 10-Oct-2020, file 3: 15-Nov-2020 to 31-Dec-2020, etc.), the function automatically generates a single time series, filling gaps with `NA`
 
+# Fetch rainfall station data from in-house and external server
 Function `updateRainDB` fetches rainfall data for a selected time period from an in-house and an external server and adds it to a local data base (plain text file). As a first step, the user must manually create an NA-filled data base covering the project's time period as template. Format:
 
 | dateTime         | gauge1 | gauge2 | gauge3 | ... | 
@@ -57,44 +59,40 @@ Parameters:
 - `tFalseRainName`: Name of file containing time stamps of manually adjusted data points. In this use case, the raw data may contain data points with false rain resulting from gauge maintenance. These data points are adjusted manually in the data base and their time stamps are registered in this file so that the function skips over them the next time a download occurrs. This avoids overwritting the corrected data.
 - `login`: User name and password for the in-house server
 - `D2Wsid`: Session ID for the external server
-- `skip`: This parameter offers the possibility of skipping either server. Values: `skip=KWB` skips external server, `skip=BWB` skips in-house server
-- `overwriteOldDB`: If `TRUE`, overwrites the rows with the new data directly in the existing data base. If `FALSE`, generates a copy of the existing data base and overwrites the raws there. The copy will have the same name as the original data base wit `_new` appended to it.
+- `skip`: This parameter offers the possibility of skipping either server. `skip=BWB` skips external server, `skip=BWB` skips in-house server
+- `overwriteOldDB`: If `TRUE`, overwrites the rows with the new data directly in the existing data base. If `FALSE`, generates a copy of the existing data base and overwrites the raws there. The copy will have the same name as the original data base with `_new` appended to it.
 - `summerTime`: `data.frame` indicating the start and end (first and last time stamps) of the summer daylight saving time in the current use case. **Important:** the current version of the function was written for use in time zone `Etc/GMT-1` (Germany, no daylight saving time). Time zone will be added as a user-given parameter in future versions.
 
-
-# update temperature data base
-updateWeatherDB(rawdir='c:/kwb/SpuR/_Daten/Wetter/',
+# Fetch weather station data from German Weather Service's Climate Data Centre
+# https://opendata.dwd.de/climate_environment/CDC/
+`updateWeatherDB` uses `download.file` to access the German Weather Service's Climate Data Centre and download the current contents (last 500 days) of `recent/10minutenwerte_XXXX_00`, where `XXXX` stands for the desired weather variable (see below). Downloaded data are added to a user-created plain text file, as done for `updateRainDB`.
+Function usage for temperature data:
+```R
+updateWeatherDB(rawdir='.../weather_data/',
                 dbName='tempDB.txt',
                 dwdCols=c('MESS_DATUM', 'TT_10', 'RF_10', 'QN'),
-                dwdStationID=430, # 430 = Tegel
+                dwdStationID=430,
                 overwriteOldDB=TRUE)
+```
 
-# update wind data base
-updateWeatherDB(rawdir='c:/kwb/SpuR/_Daten/Wetter/',
-                dbName='windDB.txt',
-                dwdStationID=430, # 430 = Tegel
-                dwdCols=c('MESS_DATUM', 'FF_10', 'DD_10', 'QN'),
-                overwriteOldDB=TRUE)
+Parameters:
+- `rawdir`: Directory containing the weather data bases
+- `dbName`: Name of data base plain text file. In the example above the function will work on the temperature data base `tempDB.txt`.
+- `dwdCols`: Names of the desired columns in the original DWD data. See DWD data set documentation.
+`dwdStationID`: DWD station number
+`overwriteOldDB`: If `FALSE`, creates a copy of the original data base and adds the downloaded data there, appending `_new` to the name. If `FALSE`, adds the downloaded data to the original data base.
 
-# update solar radiation data base
-updateWeatherDB(rawdir='c:/kwb/SpuR/_Daten/Wetter/',
-                dbName='solarDB.txt',
-                dwdStationID=430, # 430 = Tegel
-                dwdCols=c('MESS_DATUM', 'DS_10', 'GS_10', 'SD_10', 'LS_10', 'QN'),
-                overwriteOldDB=TRUE)
+# Load weather data base into R
+`readWeatherDB` is a simple wrapper around `read.table` for reading the above weather data bases.
 
-# read weather data bases
-rainData <- readWeatherDB(rawdir='c:/kwb/SpuR/_Daten/Wetter/',
+```R
+rainData <- readWeatherDB(rawdir='.../weather_data/',
                           dbName='rainDB.txt',
                           naStrings=c('NA', '[-11059] No Good Data For Calculation'))
-tempData <- readWeatherDB(rawdir='c:/kwb/SpuR/_Daten/Wetter/',
-                          dbName='tempDB.txt',
-                          naStrings=c('NA'))
-windData <- readWeatherDB(rawdir='c:/kwb/SpuR/_Daten/Wetter/',
-                          dbName='windDB.txt',
-                          naStrings=c('NA'))
+```
 
-# plot rainfall in selected time window
+# Plot rainfall in selected time window
+```R
 checkRain(rainData=rainData,
           gauges=c('KWB', 'BlnX', 'BlnXI'),
           col=c('black', 'blue', 'red'),
@@ -104,6 +102,8 @@ checkRain(rainData=rainData,
           tEnd='2020-07-01 11:30',
           dt=0.15*3600,
           dy=1)
+```
+![](rain.emf)
 
 checkWeather(tBeg='2020-07-09 00:30',
              tEnd='2020-07-09 21:30',

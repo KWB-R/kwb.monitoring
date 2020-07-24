@@ -479,7 +479,9 @@ updateWeatherDB <- function(rawdir, dbName,
                 fileEncoding="UTF-8")
   } else {
     write.table(db,
-                file=paste(rawdir, 'new_',  dbName, sep=''),
+                file=paste0(rawdir,
+                       sub(pattern = '.txt', replacement = '', x = dbName),
+                       "_new.txt"),
                 quote=FALSE,
                 sep=";",
                 row.names=FALSE,
