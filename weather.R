@@ -291,8 +291,7 @@ updateRainDB <- function(rawdir,
   }
   
   # read KWB rain gauge in Bruno-Bürgel-Weg for user-defined time window, format data and add to rainDB
-  if(skip != "KWB")
-  {
+  if(skip != "KWB"){
     # download d2w data
     t2 <- as.POSIXct(tEnd, format="%Y%m%d", tz="Etc/GMT-1")
     t1 <- as.POSIXct(tBeg, format="%Y%m%d", tz="Etc/GMT-1")
@@ -366,8 +365,7 @@ updateRainDB <- function(rawdir,
   }
   
   # write new rainDB
-  if(overwriteOldDB)
-  {
+  if(overwriteOldDB){
     write.table(rainDB,
                 file=paste0(rawdir, rainDBname),
                 quote=FALSE,
@@ -376,7 +374,9 @@ updateRainDB <- function(rawdir,
                 fileEncoding="UTF-8")
   } else {
     write.table(rainDB,
-                file=paste0(rawdir, "rainDB_new.txt"),
+                file=paste0(rawdir,
+                            sub(pattern = '.txt', replacement = '', x = rainDBname),
+                            "_new.txt"),
                 quote=FALSE,
                 sep=";",
                 row.names=FALSE,
