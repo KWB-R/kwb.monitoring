@@ -21,7 +21,7 @@ Parameters:
 
 If there are different data files covering different overlapping or non-overlapping time periods (e.g., file 1: 1-Jan-2020 to 15-Jun-2020, file 2: 1-Jun-2020 to 10-Oct-2020, file 3: 15-Nov-2020 to 31-Dec-2020, etc.), the function automatically generates a single time series, filling gaps with `NA`
 
-# Fetch rainfall station data from in-house and external server
+# Fetch rainfall station data from in-house and external servers
 Function `updateRainDB` fetches rainfall data for a selected time period from an in-house and an external server and adds it to a local data base (plain text file). As a first step, the user must manually create an NA-filled data base covering the project's time period as template. Format:
 
 | dateTime         | gauge1 | gauge2 | gauge3 | ... | 
@@ -118,10 +118,10 @@ checkWeather(tBeg='2020-06-13 12:00',
              rainScale=20,
              rainGauge='KWB')
 ```
-Parameter `rainScale` controls the scaling of the rainfall data on the inverted axis at the top of the plot. Axis and data point colors indicate the variables. A statistical summary is presented at the top, including total rainfall depth (h<sub>N</sub>, units = milimeters), mean (standard deviation) for wind direction (wDir, units = counter-clockwise degrees from North), and mean(standard deviation) wind speed (wSpeed, units = meter/second).
+Parameter `rainScale` controls the scaling of the rainfall data on the inverted axis at the top of the plot. Axis and data point colors indicate the variables. A statistical summary is presented at the top, including total rainfall depth (h<sub>N</sub>, units = milimeters), mean(standard deviation) for wind direction (wDir, units = counter-clockwise degrees from North), and mean(standard deviation) for wind speed (wSpeed, units = meter/second).
 ![](weather.png)
 
-`plotEvent` graphs runoff and rainfall simultaneously for a user-defined time period. In this example there are two runoff loggers (`Qzu`, `Qab`) and one rain gauge (`KWB`). The function also performs a numerical integration of the discharge curves (using function `computeVol`, see script `stormRunoff.R`) and writes the total volume for each logger on the plot (labeled here as V<sub>zu</sub> and V<sub>ab</sub>, units = liter), together with the rainfall depth (h<sub>N</sub>)) in milimeters.
+`plotEvent` graphs runoff and rainfall simultaneously for a user-defined time period. In this example there are two runoff loggers (`Qzu`, `Qab`) and one rain gauge (`KWB`). The function also performs a numerical integration of the discharge curves (using function `computeVol`, see script `stormRunoff.R`) and writes the total volume for each logger on the plot (labeled here as V<sub>zu</sub> and V<sub>ab</sub>, units = liter), together with the rainfall depth (h<sub>N</sub>) in milimeters.
 ```R
 plotEvent(tBeg='2020-06-13 12:00',
           tEnd='2020-06-14 03:00',
