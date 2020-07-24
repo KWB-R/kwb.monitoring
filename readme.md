@@ -118,10 +118,10 @@ checkWeather(tBeg='2020-06-13 12:00',
              rainScale=20,
              rainGauge='KWB')
 ```
-Parameter `rainScale` controls the scaling of the rainfall data on the inverted axis at the top of the plot. Axis and data point colors indicate the variables. A statistical summary is presented at the top, including total rainfall depth (h<sub>N</sub>), mean (standard deviation) for wind direction (wDir, units = counter-clockwise degrees from North), and mean(standard deviation) wind speed (wSpeed, units = meter/second).
+Parameter `rainScale` controls the scaling of the rainfall data on the inverted axis at the top of the plot. Axis and data point colors indicate the variables. A statistical summary is presented at the top, including total rainfall depth (h<sub>N</sub>, units = milimeters), mean (standard deviation) for wind direction (wDir, units = counter-clockwise degrees from North), and mean(standard deviation) wind speed (wSpeed, units = meter/second).
 ![](weather.png)
 
-`plotEvent` graphs runoff and rainfall simultaneously for a user-defined time period. In this example there are two runoff loggers (`Qzu`, `Qab`) and one rain gauge (`KWB`)
+`plotEvent` graphs runoff and rainfall simultaneously for a user-defined time period. In this example there are two runoff loggers (`Qzu`, `Qab`) and one rain gauge (`KWB`). The function also performs a numerical integration of the discharge curves (using function `computeVol`, see script `stormRunoff.R`) and writes the total volume for each logger on the plot (labeled here as V<sub>zu</sub> and V<sub>ab</sub>, units = liter), together with the rainfall depth (h<sub>N</sub>)) in milimeters.
 ```R
 plotEvent(tBeg='2020-06-13 12:00',
           tEnd='2020-06-14 03:00',
