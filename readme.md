@@ -91,29 +91,36 @@ rainData <- readWeatherDB(rawdir='.../weather_data/',
                           naStrings=c('NA', '[-11059] No Good Data For Calculation'))
 ```
 
-# Plot rainfall in selected time window
+# Visualizing the data
+`checkRain` allows plotting rainfall at multiple rain gauges for a selected time window:
 ```R
 checkRain(rainData=rainData,
           gauges=c('KWB', 'BlnX', 'BlnXI'),
           col=c('black', 'blue', 'red'),
           lty=c(1, 1, 1),
           pch=c(NA, NA, NA),
-          tBeg='2020-07-01 09:30',
-          tEnd='2020-07-01 11:30',
-          dt=0.15*3600,
+          tBeg='2020-06-13 12:00',
+          tEnd='2020-06-14 03:00',
+          dt=1*3600,
           dy=1)
 ```
-![](rain.emf)
+![](rain.png)
 
-checkWeather(tBeg='2020-07-09 00:30',
-             tEnd='2020-07-09 21:30',
+`checkWeather` creates a plot for visualizing rainfall, wind and temperature simultaneously
+```R
+checkWeather(tBeg='2020-06-13 12:00',
+             tEnd='2020-06-14 03:00',
              dt=3600*1,
              rainData=rainData, 
              windData=windData, 
              tempData=tempData,
-             rainScale=150,
+             rainScale=20,
              rainGauge='KWB')
+```
+Parameter rainScale controls the scaling of the rainfall data on the inverted axis at the top of the plot.
+![](weather.png)
 
+`plotEvent` graphs 
 plotEvent(tBeg='2020-06-04 10:00',
           tEnd='2020-06-08 23:30',
           dt=3600*1,

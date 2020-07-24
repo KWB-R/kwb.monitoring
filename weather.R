@@ -607,8 +607,6 @@ checkWeather <- function(tBeg, tEnd, dt,
   sdxx <- sd(tt$y, na.rm=TRUE)
   cat("air temp. =", round(xx, digits=1), "+/-", round(sdxx, digits=2), "degC\n")
   
-  
-  
   # sort data to avoid inexplicable line connecting last and first point in plot
   windEvent <- windEvent[order(windEvent$dateTime), ] 
   
@@ -617,7 +615,7 @@ checkWeather <- function(tBeg, tEnd, dt,
   tAx <- seq(tBeg, tEnd, by=dt)
   
   windows(height=4, width=8)
-  par(mar=c(3,3.5,1,5))
+  par(mar=c(3, 3.5, 2, 5))
   plot(windEvent$dateTime, windEvent$wDirection, xlim=c(tBeg-0.01*(tEnd-tBeg),
                                                         tEnd+0.05*(tEnd-tBeg)),
        type="p", pch=20, axes=FALSE, xlab="", ylab="",
@@ -641,23 +639,22 @@ checkWeather <- function(tBeg, tEnd, dt,
                  .(round(sd(wd$y, na.rm=TRUE), digits=0)), ") deg, ",
                  wSpeed == .(round(mean(ws$y, na.rm=TRUE), digits=1)), "(",
                  .(round(sd(ws$y, na.rm=TRUE), digits=1)),") m/s"))
-  text(x=tEnd, y=10, eq, adj=1)
+  title(main=eq)
 }
 
 # add rain to existing plot as upside-down bars
 addRain <- function(raindat, ymax, scale, color, rainGauge){
-  for(i in 1:(nrow(raindat)-1))
-  {
+  for(i in 1:(nrow(raindat)-1)){
     x0 <- raindat[[1]][i]
     x1 <- raindat[[1]][i+1]
-    y1 <- pull(raindat, rainGauge)[i]
+    y1 <- raindat[i, rainGauge]
     
     polygon(x=c(x0, x0, x1, x1),
             y=c(ymax, -y1*scale + ymax, -y1*scale + ymax, ymax),
             col=color, border=color)
   }
   
-  iNmax  <- max(pull(raindat, rainGauge), na.rm=TRUE)
+  iNmax  <- max(raindat[, rainGauge], na.rm=TRUE)
   
   if(iNmax < 0.5)
   {
@@ -694,7 +691,7 @@ addRain <- function(raindat, ymax, scale, color, rainGauge){
   rAxLab <- round(seq(0, iNmax, by=iNby), digits=1)
   
   axis(4, las=2, at=rAx, labels=rAxLab, hadj=0.3)
-  mtext(expression(paste(i[N], " [mm/5min.]")), side=4, line=1.8, at=ymax, adj=1, cex=0.8)
+  mtext(expression(paste(i[N], " [mm/5min.]")), side=4, line=1.6, at=ymax, adj=1, cex=0.8)
 }
 
 # compute angle of attack of wind to facade
