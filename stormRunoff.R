@@ -164,6 +164,7 @@ plotEvent <- function(tBeg, tEnd, dt,
        axes=FALSE, xlab="", ylab="", ylim=c(0, 1.1*Qmax))
   lines(outflowQsel$dateTime, outflowQsel$Q, col='red', type='o', pch=20)
   addRain(raindat=rainSel, ymax=1.1*Qmax, scale=rainScale, color="grey", rainGauge)
+  lines(inflowQsel$dateTime, inflowQsel$Q, type="o", pch=20)
   legend(x=tEnd-(tEnd - tBeg)*0.15,
          y=Qmax,
          legend = c('Zu', 'Ab'), lty=1, col=c('black', 'red'),

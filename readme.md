@@ -64,7 +64,8 @@ Parameters:
 - `summerTime`: `data.frame` indicating the start and end (first and last time stamps) of the summer daylight saving time in the current use case. **Important:** the current version of the function was written for use in time zone `Etc/GMT-1` (Germany, no daylight saving time). Time zone will be added as a user-given parameter in future versions.
 
 # Fetch weather station data from German Weather Service's Climate Data Centre
-# https://opendata.dwd.de/climate_environment/CDC/
+https://opendata.dwd.de/climate_environment/CDC/
+
 `updateWeatherDB` uses `download.file` to access the German Weather Service's Climate Data Centre and download the current contents (last 500 days) of `recent/10minutenwerte_XXXX_00`, where `XXXX` stands for the desired weather variable (see below). Downloaded data are added to a user-created plain text file, as done for `updateRainDB`.
 Function usage for temperature data:
 ```R
@@ -106,7 +107,7 @@ checkRain(rainData=rainData,
 ```
 ![](rain.png)
 
-`checkWeather` creates a plot for visualizing rainfall, wind and temperature simultaneously
+`checkWeather` creates a plot for visualizing rainfall, wind and temperature simultaneously.
 ```R
 checkWeather(tBeg='2020-06-13 12:00',
              tEnd='2020-06-14 03:00',
@@ -117,16 +118,16 @@ checkWeather(tBeg='2020-06-13 12:00',
              rainScale=20,
              rainGauge='KWB')
 ```
-Parameter rainScale controls the scaling of the rainfall data on the inverted axis at the top of the plot.
+Parameter `rainScale` controls the scaling of the rainfall data on the inverted axis at the top of the plot. Axis and data point colors indicate the variables. A statistical summary is presented at the top, including total rainfall depth (h<sub>N</sub>), mean (standard deviation) for wind direction (wDir, units = counter-clockwise degrees from North), and mean(standard deviation) wind speed (wSpeed, units = meter/second).
 ![](weather.png)
 
-`plotEvent` graphs 
-plotEvent(tBeg='2020-06-04 10:00',
-          tEnd='2020-06-08 23:30',
+`plotEvent` graphs runoff and rainfall simultaneously for a user-defined time period. In this example there are two runoff loggers (`Qzu`, `Qab`) and one rain gauge (`KWB`)
+```R
+plotEvent(tBeg='2020-06-13 12:00',
+          tEnd='2020-06-14 03:00',
           dt=3600*1,
           inflowQ=Qzu, outflowQ=Qab, rainData=rainData,
           rainGauge='KWB',
-          rainScale=100)
-
-
-
+          rainScale=20)
+```
+![](hydrolEvent.png)
