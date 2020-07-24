@@ -22,14 +22,14 @@ If there are different data files covering different overlapping or non-overlapp
 
 Function `updateRainDB` fetches rainfall data for a selected time period from an in-house and an external server and adds it to a local data base (plain text file). As a first step, the user must manually create an NA-filled data base covering the project's time period as template. Format:
 
-| dateTime | gauge1 | gauge2 | gauge3 | ... | 
-| -------- | ---- | ---- | ----- | ----- | ----- |
-| 2019-10-15-19:00 | NA | NA | NA | NA |
-| 2019-10-15-19:05 | NA | NA | NA | NA |
-| 2019-10-15-19:10 | NA | NA | NA | NA |
-| 2019-10-15-19:15 | NA | NA | NA | NA |
-| 2019-10-15-19:20 | NA | NA | NA | NA |
-| ... | ...| ... | ...  | ... |
+| dateTime         | gauge1 | gauge2 | gauge3 | ... | 
+| ---------------- | ----   | ----   | -----  | --- |
+| 2019-10-15-19:00 | NA     | NA     | NA     | NA  |
+| 2019-10-15-19:05 | NA     | NA     | NA     | NA  |
+| 2019-10-15-19:10 | NA     | NA     | NA     | NA  |
+| 2019-10-15-19:15 | NA     | NA     | NA     | NA  |
+| 2019-10-15-19:20 | NA     | NA     | NA     | NA  |
+| ...              | ...    | ...    | ...    | ... |
 
 Time stamps must be in the first column, with column name `dateTime`.Date and time format must be as shwon here. `gaugeX` stands for the names of the gauges as they are in the respective servers. The function will read this template and determine from it the names of the gauges and the time period of the project.
 
