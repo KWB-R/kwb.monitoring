@@ -181,3 +181,92 @@ plotEvent <- function(tBeg, tEnd, dt,
   box()
 }
 
+# read PCM data file
+readPCM <- function(rawdir, fileName, onlyH){
+  
+  # list available folders
+  setwd(rawdir)
+
+  avFile <- dir()
+  avFile <- paste(avFile, fileName, sep='/')
+  
+  # vector with column names
+  colNam <- c("Datum", "Uhrzeit", "H", "vel", "Q", "T",
+              "ADC_1", "ADC_2", "ADC_3", "ADC_4",
+              "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9",
+              "v10", "v11", "v12", "v13", "v14", "v15", "v16",
+              "Geschw", "Wasser-US-int", "Druck-intern", "Leiter_Sonde",
+              "Luft-US-NIVUS")
+  
+  # make empty data frame for holding time window covered by each file
+  timeWindows <- data.frame(matrix(NA, nrow=length(avFile), ncol=3,
+                                   dimnames = list(NULL, c("file", "start", "end"))))
+  
+  # loop through all files and get time window covered by each file by looking at first
+  # and last line
+  count <- 0
+  print("scanning files...", row.names=FALSE, quote=FALSE)
+  pb <- txtProgressBar(min=0, max=length(avFile), width=20, style=3)
+  for(i in avFile){
+    count  <- count + 1
+    readi  <- readLines(con=i)
+    starti <- paste(strsplit(readi[11], "\t")[[1]][1:2], collapse=" ")
+    endi   <- paste(strsplit(readi[length(readi)], "\t")[[1]][1:2], collapse=" ")
+    
+    timeWindows$file[count] <- i
+    timeWindows$start[count] <- starti
+    timeWindows$end[count] <- endi
+    
+    setTxtProgressBar(pb, count)
+  }; close(pb)
+  
+  
+  # how many unique starting time points are there amongst all files?
+  uniqueStarts <- unique(timeWindows$start)
+  
+  # for each unique starting point, read the last file (contains the longest range of data)
+  hydraulics <- list()
+  count <- 0
+  print("reading files...", row.names=FALSE, quote=FALSE)
+  pb <- txtProgressBar(min=0, max=length(uniqueStarts), width=20, style=3)
+  for(i in uniqueStarts){
+    count               <- count + 1
+    uniqueStarti        <- timeWindows[timeWindows$start==i, ]
+    filei               <- uniqueStarti$file[nrow(uniqueStarti)]
+    hydraulics[[count]] <- read.table(file=filei,
+                                      header=FALSE,
+                                      skip=10,
+                                      sep="\t",
+                                      na.strings="#-1",
+                                      comment.char="/",
+                                      colClasses=c("character", "character",
+                                                   rep("numeric", 29)),
+                                      dec=",",
+                                      col.names=colNam,
+                                      blank.lines.skip=TRUE,
+                                      fill=TRUE)
+    
+    setTxtProgressBar(pb, count)
+  }; close(pb)
+  
+  # bind all data in single data.frame
+  print("building complete hydraulics...", row.names=FALSE, quote=FALSE)
+  pb <- txtProgressBar(min=0, max=length(hydraulics), width=20, style=3)
+  hydraulicsFull <- data.frame()
+  for(i in 1:length(hydraulics)){
+    hydraulicsFull <- rbind(hydraulicsFull, hydraulics[[i]])
+    setTxtProgressBar(pb, i)
+  }; close(pb)
+  
+  # format full data set
+  hydraulicsFull$dateTime <- paste(hydraulicsFull$Datum, hydraulicsFull$Uhrzeit)
+  hydraulicsFull$dateTime <- as.POSIXct(hydraulicsFull$dateTime, format="%d.%m.%Y %H:%M:%S",
+                                        tz="Etc/GMT-1")
+  hydraulicsFull <- hydraulicsFull[order(hydraulicsFull$dateTime), ]
+
+  if(onlyH){
+    hydraulicsFull <- hydraulicsFull[, c('dateTime', 'H')]
+  }
+  
+  return(hydraulicsFull)
+}
