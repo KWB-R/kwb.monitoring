@@ -1,6 +1,6 @@
 # Introduction
 
-A series of functions for collecting hydrological and weather data from different sources.
+A series of functions for collecting hydrological and weather data from different sources in the context of stormwater management.
 
 The functions can be loaded with `source()`:
 ```R
