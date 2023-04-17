@@ -175,7 +175,7 @@ plotEventDistribution <- function(eventsAndStat, settings)
   
   kwb.plot::setMargins(top = 3, bottom = 0)
   
-  gplots::textplot(info_general, valign = "top", cex = 1)
+  textplot(info_general, valign = "top", cex = 1)
   
   main <- paste("Station:", settings$station)          
   
@@ -186,7 +186,7 @@ plotEventDistribution <- function(eventsAndStat, settings)
     precisionLevel = settings$precisionLevel
   )
   
-  gplots::textplot(statistics, show.rownames = FALSE)
+  textplot(statistics, show.rownames = FALSE)
   
   # Reset graphical parameters
   graphics::par(old_pars)
@@ -286,7 +286,7 @@ plot_sampled_event <- function(
     volumeCompositeSample, settings$precisionLevel
   )
   
-  gplots::textplot(formattedDataFrame, valign = "top", show.rownames = FALSE)
+  textplot(formattedDataFrame, valign = "top", show.rownames = FALSE)
   
   # plot into layout area 4
   graphics::barplot(
@@ -332,9 +332,7 @@ plot_sampled_event <- function(
     sep = "\n"
   )
   
-  gplots::textplot(
-    infoText, valign = "top", halign = "left", mar = c(0, 0, 0, 0)
-  )
+  textplot(infoText, valign = "top", halign = "left", mar = c(0, 0, 0, 0))
 }
 
 # plotEventOverview ------------------------------------------------------------

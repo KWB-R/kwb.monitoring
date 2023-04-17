@@ -55,8 +55,7 @@
   } else {
     
     for (gauge in gauges) {
-      
-      gplots::textplot("No rain data available.", cex = 1)
+      textplot("No rain data available.", cex = 1)
     }      
   }
 }

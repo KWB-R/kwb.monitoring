@@ -170,5 +170,5 @@ textplot_event_info <- function(settings, eventAndStat)
     sep = "\n"
   )
   
-  gplots::textplot(infotext, valign = "top")
+  textplot(infotext, valign = "top")
 }

@@ -53,3 +53,9 @@ draw_limits <- function(v, col = "green", lty = 2, lwd = 2, dbg = FALSE)
   
   graphics::abline(v = v, col = col, lty = lty, lwd = lwd)
 }
+
+# textplot ---------------------------------------------------------------------
+textplot <- function(object, ...)
+{
+  gplots::textplot(object, ..., xpd = TRUE)
+}
